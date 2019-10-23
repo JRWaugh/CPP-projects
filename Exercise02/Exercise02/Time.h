@@ -18,27 +18,18 @@ void Time::read(std::string prompt) {
 	//Only verifying that positive numbers are given. Will reduce large numbers down to sensible numbers if necessary.
 	std::cout << prompt << std::endl;
 	std::cout << "Enter hours: " << std::endl;
-	while ( !(std::cin >> hours) || hours < 0 ) {
+	while (!(std::cin >> hours) || hours < 0 || hours > 23) {
 		std::cin.clear();
 		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 		std::cout << "Invalid input.\nEnter hours: " << std::endl;
 	}
 
 	std::cout << "Enter minutes: " << std::endl;
-	while (!(std::cin >> minutes) || minutes < 0) {
+	while (!(std::cin >> minutes) || minutes < 0 || minutes > 59) {
 		std::cin.clear();
 		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 		std::cout << "Invalid input.\nEnter minutes: " << std::endl;
 	};
-
-	while (minutes > 59) {
-		minutes -= 60;
-		hours++;
-	}
-
-	while (hours > 23) {
-		hours -= 24;
-	}
 }
 
 bool Time::lessThan(Time time) {
@@ -50,8 +41,9 @@ bool Time::lessThan(Time time) {
 
 Time Time::subtract(Time time) {
 	Time diff;
-	diff.hours = hours - time.hours;
-	diff.minutes = minutes - time.minutes;
+	diff.minutes = (hours * 60 + minutes) - (time.hours * 60 + time.minutes);
+	diff.hours = diff.minutes / 60;
+	diff.minutes %= 60;
 	return diff;
 }
 

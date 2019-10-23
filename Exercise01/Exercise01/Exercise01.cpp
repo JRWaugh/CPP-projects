@@ -6,17 +6,17 @@ int mean(int* array, int n);
 int main()
 {
 	int amount;
-	std::cout << "How many numbers are needed?\n";
+	std::cout << "How many numbers are needed?" << std::endl;
 	std::cin >> amount;
 	int* numbers = new int[amount];
 
 	srand(time(NULL));
 	for (int i = 0; i < amount; i++) {
 		numbers[i] = rand() % 100;
-		std::cout << numbers[i] << "\n";
+		std::cout << numbers[i] << std::endl;
 	}
 
-	std::cout << "The mean is " << mean(numbers, amount) << "\n";
+	std::cout << "The mean is " << mean(numbers, amount) << std::endl;
 	delete[] numbers;
 }
 
