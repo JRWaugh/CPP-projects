@@ -21,13 +21,15 @@ void Time::read(std::string prompt) {
 
 	do {
 		std::cout << prompt << std::endl;
-		std::getline(std::cin, str);
-		if (str.find(':') != -1) {
+		std::getline(std::cin, str); //getline so all input up to a linefeed will be read into the string
+		if (str.find(':') != -1 && str.find(':') == str.find_last_of(':')) {
 			str[str.find(':')] = ' ';
 			std::stringstream(str) >> hours >> minutes;
 		}
-		else
+		else {
+			std::cout << "Invalid input." << std::endl;
 			hours = -1;
+		}
 	} while (hours < 0 || hours > 23 || minutes < 0 || minutes > 59);
 }
 
