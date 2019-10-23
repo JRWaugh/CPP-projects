@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 #include <limits>
 #include <iomanip>
 
@@ -16,20 +17,18 @@ public:
 
 void Time::read(std::string prompt) {
 	//Only verifying that positive numbers are given. Will reduce large numbers down to sensible numbers if necessary.
-	std::cout << prompt << std::endl;
-	std::cout << "Enter hours: " << std::endl;
-	while (!(std::cin >> hours) || hours < 0 || hours > 23) {
-		std::cin.clear();
-		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-		std::cout << "Invalid input.\nEnter hours: " << std::endl;
-	}
+	std::string str;
 
-	std::cout << "Enter minutes: " << std::endl;
-	while (!(std::cin >> minutes) || minutes < 0 || minutes > 59) {
-		std::cin.clear();
-		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-		std::cout << "Invalid input.\nEnter minutes: " << std::endl;
-	};
+	do {
+		std::cout << prompt << std::endl;
+		std::getline(std::cin, str);
+		if (str.find(':') != -1) {
+			str[str.find(':')] = ' ';
+			std::stringstream(str) >> hours >> minutes;
+		}
+		else
+			hours = -1;
+	} while (hours < 0 || hours > 23 || minutes < 0 || minutes > 59);
 }
 
 bool Time::lessThan(Time time) {
