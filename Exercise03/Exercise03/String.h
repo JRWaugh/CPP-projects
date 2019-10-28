@@ -3,8 +3,8 @@
 class String
 {
 public:
-	String(const char* string = "");
-	String(const String &s); //copy constructor
+	String(char const *string = "");
+	String(String const &s); //copy constructor
 	~String();
 	void list();
 private:

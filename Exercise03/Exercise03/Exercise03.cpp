@@ -6,6 +6,7 @@ void f(String s);
 
 int main() {
 	String s("abcdefg");
+	//String s2 = s; Tested if this works. It does.
 	s.list();
 	f(s);
 	s.list(); //Phase 2: memory error without copy constructor here because the destructor was called when String s went out of f()'s scope

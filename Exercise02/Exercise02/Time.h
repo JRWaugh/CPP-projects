@@ -8,39 +8,34 @@ private:
 	int minutes;
 	int hours;
 public:
-	void read(std::string prompt);
-	bool lessThan(Time time);
-	Time subtract(Time time);
+	void read(std::string const prompt);
+	bool lessThan(Time const &time);
+	Time subtract(Time const &time);
 	void display();
 
 };
 
-void Time::read(std::string prompt) {
-	//Only verifying that positive numbers are given. Will reduce large numbers down to sensible numbers if necessary.
+void Time::read(std::string const prompt) {
 	std::string str;
-
+	char colon;
 	do {
 		std::cout << prompt << std::endl;
 		std::getline(std::cin, str); //getline so all input up to a linefeed will be read into the string
-		if (str.find(':') != -1 && str.find(':') == str.find_last_of(':')) {
-			str[str.find(':')] = ' ';
-			std::stringstream(str) >> hours >> minutes;
-		}
-		else {
+		if (!(std::stringstream(str) >> hours >> colon >> minutes) || colon != ':') {
 			std::cout << "Invalid input." << std::endl;
-			hours = -1;
+			colon = 0; //reusing this variable to make the loop easier to work with
 		}
-	} while (hours < 0 || hours > 23 || minutes < 0 || minutes > 59);
+	} while (!colon);
 }
 
-bool Time::lessThan(Time time) {
+bool Time::lessThan(Time const &time) {
 	if (hours < time.hours || (hours == time.hours && minutes < time.minutes))
 		return true;
 	else
 		return false;
 }
 
-Time Time::subtract(Time time) {
+Time Time::subtract(Time const &time) {
 	Time diff;
 	diff.minutes = (hours * 60 + minutes) - (time.hours * 60 + time.minutes);
 	diff.hours = diff.minutes / 60;
