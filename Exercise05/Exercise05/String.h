@@ -14,6 +14,7 @@ public:
 	String& operator++();
 	String operator++(int);
 	const String& operator = (const String& string);
+	const String& operator = (const char *string);
 	char& operator[](int i);
 	operator const char* ();
 private:

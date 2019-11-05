@@ -20,6 +20,13 @@ const String& String::operator = (const String& string) {
 	return *this;
 }
 
+const String& String::operator = (const char* string) {
+	delete[] c_string;
+	c_string = new char[strlen(string) + 1];
+	strcpy_s(c_string, strlen(string) + 1, string);
+	return *this;
+}
+
 String String::operator + (String const& string) const {
 	String temp;
 	temp.c_string = new char[strlen(c_string) + strlen(string.c_string) + 1];

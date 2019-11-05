@@ -1,4 +1,4 @@
-/*#include <iostream>
+#include <iostream>
 #include "String.h"
 
 void main() {
@@ -8,11 +8,11 @@ void main() {
 	std::cout << s;
 	strcpy_s(name, 30, s); //Conversion String -> c-string
 	std::cout << name;
-}*/
+}
 
 // Exercise 5
 
-#include <iostream>
+/*#include <iostream>
 #include <fstream>
 #include <string>
 
@@ -38,4 +38,4 @@ int main() {
 
 string tag_search(string const &text, string const &tag) {
 	return text.substr(text.find("<" + tag + ">") + ("<" + tag + ">").length(), text.find("</" + tag + ">") - text.find("<" + tag + ">") - ("<" + tag + ">").length());
-}
+}*/
