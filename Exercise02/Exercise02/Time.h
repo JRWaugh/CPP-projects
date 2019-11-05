@@ -21,7 +21,7 @@ void Time::read(std::string const prompt) {
 	do {
 		std::cout << prompt << std::endl;
 		std::getline(std::cin, str); //getline so all input up to a linefeed will be read into the string
-		if (!(std::stringstream(str) >> hours >> colon >> minutes) || colon != ':') {
+		if (!(std::stringstream(str) >> hours >> colon >> minutes) || colon != ':' || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
 			std::cout << "Invalid input." << std::endl;
 			colon = 0; //reusing this variable to make the loop easier to work with
 		}

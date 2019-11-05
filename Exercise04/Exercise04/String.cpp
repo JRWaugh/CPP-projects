@@ -13,7 +13,7 @@ String::String(String const &string) {
 
 String& String::operator = (String string) {
 	//Copied mostly from online because I realised I was writing a copy constructor/destructor twice.
-	swap(*this, string);
+	std::swap(*this, string);
 	return *this;
 }
 
