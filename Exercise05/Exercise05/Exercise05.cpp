@@ -37,5 +37,5 @@ int main() {
 }
 
 string tag_search(string const &text, string const &tag) {
-	return text.substr(text.rfind("<" + tag + ">") + ("<" + tag + ">").length(), text.rfind("</" + tag + ">") - text.rfind("<" + tag + ">") - ("<" + tag + ">").length());
+	return text.substr(text.find("<" + tag + ">") + ("<" + tag + ">").length(), text.find("</" + tag + ">") - text.find("<" + tag + ">") - ("<" + tag + ">").length());
 }
