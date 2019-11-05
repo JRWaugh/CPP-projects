@@ -11,6 +11,7 @@
 
 using namespace std;
 string giveStatement(string filename) {
+	//I have not bothered to get this working yet.
 	WordPool g, a, s, v;
 	ifstream inputFile(filename);
 	g.fill("G", inputFile); a.fill("A", inputFile); s.fill("S", inputFile); v.fill("V", inputFile);
