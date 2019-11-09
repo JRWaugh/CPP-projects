@@ -157,6 +157,9 @@
   <ItemGroup>
     <ClInclude Include="WordPool.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="oracle.dat" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
