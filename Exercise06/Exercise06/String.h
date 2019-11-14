@@ -15,6 +15,7 @@ public:
 	String operator++(int);
 	const String& operator = (const String& string);
 	char& operator[](int i);
+	char operator[](int i) const;
 	operator const char* ();
 	static int count;
 private:

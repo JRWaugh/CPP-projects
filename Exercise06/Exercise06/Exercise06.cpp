@@ -1,20 +1,12 @@
 #include <iostream>
 #include "String.h"
 
-/*void display(const String &p);
+void display(const String &p);
 
 int main(void) {
 	String s("abcdefgsxxxxxxx"); // MAX_STRING_LENGTH is 10
 	s[2] = 'Y';
 	display(s); // outputs the string to the screen
-	return 0;
-}
-
-void display(const String& p) {
-	std::cout << p << std::endl;
-}*/
-
-int main() {
 	std::cout << String::count << std::endl;
 	{
 		String array[4];
@@ -23,3 +15,10 @@ int main() {
 	std::cout << String::count << std::endl;
 	return 0;
 }
+
+void display(const String& p) {
+	for(int i = 0; p[i]; i++)
+		std::cout << p[i];
+	std::cout << std::endl;
+}
+

@@ -29,6 +29,7 @@ const String& String::operator = (const char* string) {
 
 String String::operator + (String const& string) const {
 	String temp;
+	delete[] c_string;
 	temp.c_string = new char[strlen(c_string) + strlen(string.c_string) + 1];
 	strcpy_s(temp.c_string, strlen(c_string) + 1, c_string);
 	strcat_s(temp.c_string, strlen(c_string) + strlen(string.c_string) + 1, string.c_string);
@@ -68,7 +69,12 @@ String String::operator++(int) {
 }
 
 char& String::operator[](int i) {
-	return c_string[i];
+	if (i >= 0 && i < strlen(c_string))
+		return c_string[i];
+	else {
+		std::cout << "Index out of bounds" << std::endl;
+		return c_string[0];
+	}
 }
 
 String::operator const char* () {

@@ -1,18 +1,18 @@
 #include <iostream>
 #include "String.h"
 
-void main() {
+/*void main() {
 	String s;
 	char name[30];
 	s = "Matti"; //Conversion c-string -> String
 	std::cout << s;
 	strcpy_s(name, 30, s); //Conversion String -> c-string
 	std::cout << name;
-}
+}*/
 
 // Exercise 5
 
-/*#include <iostream>
+#include <iostream>
 #include <fstream>
 #include <string>
 
@@ -37,5 +37,6 @@ int main() {
 }
 
 string tag_search(string const &text, string const &tag) {
-	return text.substr(text.find("<" + tag + ">") + ("<" + tag + ">").length(), text.find("</" + tag + ">") - text.find("<" + tag + ">") - ("<" + tag + ">").length());
-}*/
+	string open_tag = "<" + tag + ">", close_tag = "</" + tag + ">";
+	return (text.find(open_tag) != string::npos && text.find(close_tag) != string::npos) ? text.substr(text.find(open_tag) + (open_tag).length(), text.find(close_tag) - text.find(open_tag) - (open_tag).length()) : "Not found!";
+}

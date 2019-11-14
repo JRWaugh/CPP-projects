@@ -5,8 +5,8 @@ int String::count = 0;
 
 String::String(char const* string) {
 	count++;
-	c_string = new char[max_string_length];
-	strncpy_s(c_string, max_string_length, string, max_string_length - 1);
+	c_string = new char[max_string_length + 1];
+	strncpy_s(c_string, max_string_length + 1, string, max_string_length);
 }
 
 String::String(String const& string) {
@@ -65,6 +65,10 @@ String String::operator++(int) {
 }
 
 char& String::operator[](int i) {
+	return c_string[i];
+}
+
+char String::operator[](int i) const {
 	return c_string[i];
 }
 
