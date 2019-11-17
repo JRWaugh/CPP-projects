@@ -6,6 +6,8 @@ void display(const String &p);
 int main(void) {
 	String s("abcdefgsxxxxxxx"); // MAX_STRING_LENGTH is 10
 	s[2] = 'Y';
+	++s;
+	s++;
 	display(s); // outputs the string to the screen
 	std::cout << String::count << std::endl;
 	{

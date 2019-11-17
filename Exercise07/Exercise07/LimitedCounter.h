@@ -4,6 +4,7 @@ class LimitedCounter
 private:
 	int m_limit;
 	Counter m_counter;
+
 public:
 	LimitedCounter(int n0 = 0, int limit = 0) : m_counter(n0) {
 		m_limit = limit;
@@ -36,7 +37,7 @@ public:
 	}
 
 	friend ostream& operator<<(ostream& out, const LimitedCounter& lc) {
-		out << lc.m_counter.getCount() << std::endl;
+		out << lc.m_counter.getCount();
 		return out;
 	}
 };
