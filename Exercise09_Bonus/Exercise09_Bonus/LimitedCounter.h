@@ -12,28 +12,28 @@ public:
 		m_limit = limit;
 		m_obs = nullptr;
 	}
+
+	void Notify() {
+		m_obs->HandleLimitReached();
+	}
+
 	LimitedCounter& operator++() {
-		if (getCount() < m_limit)
-			Counter::operator++();
+		Counter::operator++();
+		if (getCount() == m_limit)
+			Notify();
 		return *this;
 	}
 
 	Counter operator++(int) {
-		if (getCount() < m_limit) {
-			LimitedCounter old(*this);
-			Counter::operator++();
-			return old;
-		}
-		else
-			return *this;
+		LimitedCounter old(*this);
+		Counter::operator++();
+		if (getCount() == m_limit)
+			Notify();
+		return old;
 	}
 
 	void setObserver(Observer* obs) {
 		m_obs = obs;
-	}
-
-	void Notify() {
-		m_obs->HandleLimitReached();
 	}
 };
 

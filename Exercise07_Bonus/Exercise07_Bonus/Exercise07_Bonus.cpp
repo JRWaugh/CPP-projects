@@ -1,10 +1,11 @@
 #include <iostream>
 #include "LimitedCounter.h"
 int main() {
-	LimitedCounter lc(0, 5); //initial value 0, upper limit 5
+	LimitedCounter lc(0, 5), lc2(1, 5); //initial value 0, upper limit 5
 	cout << lc++ << endl; //output should be 0
 	cout << ++lc << endl; //output should be 2
 	lc.reset();
+	lc = lc;
 	for (int i = 0; i < 9; i++) {
 		lc++;
 		cout << lc << endl; //output is 1 2 3 4 5 5 5 5 5

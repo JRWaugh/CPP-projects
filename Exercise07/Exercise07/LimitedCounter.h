@@ -21,14 +21,14 @@ public:
 
 	LimitedCounter& operator++() {
 		if (m_counter.getCount() < m_limit)
-			m_counter++;
+			++m_counter;
 		return *this;
 	}
 
 	LimitedCounter operator++(int) {
 		LimitedCounter old(*this);
 		if (m_counter.getCount() < m_limit)
-			m_counter++;
+			++m_counter;
 		return old;
 	}
 

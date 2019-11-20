@@ -20,6 +20,14 @@ public:
 		delete m_counter;
 	}
 
+	const LimitedCounter& operator = (const LimitedCounter& lc) {
+		if (this != &lc) {
+			delete m_counter;
+			m_counter = new Counter(lc.m_limit);
+		}
+		return *this;
+	}
+
 	int getCount() const {
 		return m_counter->getCount();
 	}
@@ -32,14 +40,14 @@ public:
 
 	LimitedCounter& operator++() {
 		if (m_counter->getCount() < m_limit)
-			(*m_counter)++;
+			++(*m_counter);
 		return *this;
 	}
 
 	LimitedCounter operator++(int) {
 		LimitedCounter old(*this);
 		if (m_counter->getCount() < m_limit)
-			(*m_counter)++;
+			++(*m_counter);
 		return old;
 	}
 
