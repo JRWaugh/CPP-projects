@@ -26,7 +26,6 @@ int main()
 {
 	
 	std::vector<Athlete> athletes;
-	std::string line;
 	std::ifstream fp("athletes.txt");
 	fp.imbue(locale(locale(), new field_reader()));// use our own separator list
 	

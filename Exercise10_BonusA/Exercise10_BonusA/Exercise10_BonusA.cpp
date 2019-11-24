@@ -1,38 +1,34 @@
-// Exercise10_BonusA.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
 int main()
 {
 	std::vector<std::vector<int>> vect_2d;
+	std::stringstream ss;
 	std::string input;
-	int col, row, val;
+	int cols, rows, val;
 	std::cout << "Enter number of rows: " << std::endl;
-	std::cin >> row;
+	std::cin >> rows;
 	std::cout << "Enter number of columns: " << std::endl;
-	std::cin >> col;
+	std::cin >> cols;
 	
-	vect_2d.resize(row, std::vector<int>(col, 0));
+	vect_2d.resize(rows, std::vector<int>(cols, 0));
 
-	for (int i = 0; i < row; ++i) {
-		std::cout << "Row number " << i + 1 << std::endl;
-		for (int j = 0; j < col; ++j) {
-			std::getline(std::cin, input); 
-			ss. >> vect_2d[j][i];
-
+	for (auto& row : vect_2d) {
+		std::cout << "Row: ";
+		for (auto& col : row) {
+			std::cin >> col;
 		}
+		std::cin.clear();
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		std::cout << std::endl;
+	}
+
+	for (auto& row : vect_2d) {
+		for (auto& col : row) {
+			std::cout << col << " ";
+		}
+		std::cout << std::endl;
 	}
 }
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
