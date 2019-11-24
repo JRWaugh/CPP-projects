@@ -38,8 +38,14 @@ int main()
 
 	int i = 1;
 	if (dupes.size()) {
-		std::cout << "\nSame numbers: " << std::endl;
+		std::cout << "\nMatching numbers: " << std::endl;
 		std::for_each(dupes.begin(), dupes.end(), [&i](int n) {std::cout << "#" << i++ << ": " << n << std::endl;});
+
+		/* Range based loop test
+		for (int n : dupes) {
+			std::cout << "#" << i++ << ": " << n << std::endl;
+		}
+		*/
 	}
 }
 

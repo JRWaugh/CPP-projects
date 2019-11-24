@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <iterator>
 #include <algorithm>
 #include <vector>
 #include <utility>
@@ -16,7 +17,6 @@ int main()
 
 	//Part b
 	vector<string> strings;
-	vector<string>::iterator it;
 	string input, longest = "";
 	cout << "Enter text. Enter \"stop\" to end program" << endl;
 	while (getline(cin, input) && input != "stop") {
@@ -28,10 +28,11 @@ int main()
 	cout << "Longest word was \"" << longest << "\"" << endl << endl;
 	cout << "List of all words entered:" << endl;
 
-	for (it = strings.begin(); it != strings.end(); ++it) {
-		cout << *it << endl;
-	}
+	std::copy(strings.begin(), strings.end(), std::ostream_iterator<string>(cout, "\n"));
 
 	cout << "Number of words entered: " << strings.size() << endl;
 	cout << "Size: " << strings.size() << "\t Capacity: " << strings.capacity() << "\t Sizeof: " << sizeof(strings) << endl;
+	/*.size() returns the current number of elements in the vector, .capacity() returns the amount of space currently reserved 
+	for the vector. sizeof() returns the size of the vector object itself. The size of the object is static (always 16 bytes). It is 
+	just pointing to dynamically created data.*/
 }

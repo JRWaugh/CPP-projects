@@ -10,6 +10,10 @@ public:
 		lc->setObserver(this);
 	}
 
+	~CounterUser() {
+		delete lc;
+	}
+
 	void IncrementBy(int n) {
 		while(n--) {
 			++(*lc);
