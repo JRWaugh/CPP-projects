@@ -18,7 +18,7 @@ public:
 		return *this;
 	}
 
-	Counter operator++(int) {
+	RoundUpCounter operator++(int) {
 		RoundUpCounter old(*this);
 		Counter::operator++();
 		if (getCount() > m_limit) {

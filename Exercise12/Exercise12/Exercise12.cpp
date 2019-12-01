@@ -40,13 +40,9 @@ public:
 	Triangle(float x1, float y1, float x2, float y2, float x3, float y3);
 	~Triangle();
 private:
-	//Using unique_ptr because they're newer and better apparently
 	unique_ptr<Point> apex1;
 	unique_ptr<Point> apex2;
 	unique_ptr<Point> apex3;
-	/*Point* apex1;
-	Point* apex2;
-	Point* apex3;*/
 };
 
 // Definition for exception class
@@ -62,7 +58,6 @@ private:
 int main() {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	try {
-		//switching to auto_ptr solves problem because its destructor is called when it goes out of scope of the try block
 		unique_ptr<Triangle> p(new Triangle(1.0, 1.0, 2.0, 2.0, 3.0, 3.0));
 		cout << *p;
 		throw Exception ("Exception after Triangle has been created");		
@@ -100,20 +95,10 @@ ostream& operator<<(ostream& out, const Point& point) {
 // Implementation of class Triangle
 Triangle::Triangle(float x1, float y1, float x2, float y2, float x3, float y3) : 
 	apex1(new Point(x1, y1)), apex2(new Point(x2, y2)), apex3(new Point(x3, y3)) {
-
-	/*apex1 = new Point(x1, y1);
-	apex2 = new Point(x2, y2);
-	apex3 = new Point(x3, y3);*/
 	cout << "Triangle constructor is done " << (void*)this << endl;
 }
 Triangle::~Triangle() {
 	cout << endl << "Destructor for Triangle " << endl;
-
-	/*No longer need the destructor because the auto pointers now own the dynamic objects and will deallocate the memory when a Triangle
-	object goes out of scope*/
-	/*delete apex1;
-	delete apex2;
-	delete apex3;*/
 }
 
 // Friend functions of Triangle

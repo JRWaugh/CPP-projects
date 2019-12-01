@@ -14,7 +14,8 @@ public:
 	}
 
 	void Notify() {
-		m_obs->HandleLimitReached();
+		if(m_obs)
+			m_obs->HandleLimitReached();
 	}
 
 	LimitedCounter& operator++() {

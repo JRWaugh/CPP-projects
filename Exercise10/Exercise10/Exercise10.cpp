@@ -8,12 +8,12 @@
 using namespace std;
 int main()
 {
-	/* Part a
+	
 	pair<int, pair<string, string>> person1(123, make_pair("aaaaa", "xxxxxxx")), person2(345, make_pair("bbb", "yyy"));
 	cout << "no\tfirst name\tlast name" << endl;
 	cout << person1.first << "\t" << setw(10) << left << person1.second.first << "\t" << person1.second.second << endl;
 	cout << person2.first << "\t" << setw(10) << left << person2.second.first << "\t" << person2.second.second << endl;
-	*/
+	
 
 	//Part b
 	vector<string> strings;

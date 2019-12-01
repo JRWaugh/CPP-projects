@@ -6,7 +6,7 @@ class Counter {
     public:
         Counter(int n0 = 0);
         virtual Counter &operator++();
-        virtual Counter operator++(int);
+        Counter operator++(int);
         bool operator<(const Counter &c2) const;
         void reset();
 	int getCount() const;

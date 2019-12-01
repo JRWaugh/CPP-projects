@@ -7,12 +7,14 @@
 Counter::Counter(int n0) {
      count = n0;
 }
+
 Counter& Counter::operator++() {
    count++;
    return *this;
 }
+
 Counter Counter::operator++(int) {
-   Counter old = *this;;
+   Counter old = *this;
    count++;
    return old;
 }
