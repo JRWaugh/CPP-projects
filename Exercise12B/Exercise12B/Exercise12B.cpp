@@ -20,7 +20,7 @@ private:
 	const char* explanation;
 };
 
-#define N 4
+#define N 100
 #define _CRTDBG_MAP_ALLOC
 #include <cstdlib>
 #include <crtdbg.h>
@@ -31,8 +31,8 @@ class Point {
 public:
 	Point(float x0 = 0.0, float y0 = 0.0);
 	~Point();
-	//one way of doing this
-	bool operator<(const Point& p2) { return distance(Point(0, 0)) < p2.distance(Point(0, 0)); }
+
+	bool operator < (const Point& p2) const { return (distance(0.0, 0.0) > p2.distance(0.0, 0.0)); }
 	float distance(const Point& p2) const;
 
 	//Had to add this because any temporary Point would cause N to be >= 4
@@ -77,6 +77,9 @@ int main() {
 		points.emplace_back(std::make_unique<Point>(7.1, 0.8));
 		std::sort(points.begin(), points.end(), [&origin](std::unique_ptr<Point>& p1, std::unique_ptr<Point>& p2) {
 			return p1->distance(origin) < p2->distance(origin); });		
+		for (auto& n : points) {
+			std::cout << n->distance(0, 0) << std::endl;
+		}
 	} 
 	catch (Exception e) {
 		cout << "Exception explanation is: " << e.what() << endl;

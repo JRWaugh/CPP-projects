@@ -2,56 +2,54 @@
 #define MEMORY_H
 #include "Memory.h"
 #endif
-//#include "MainMemory.h"
 #include <memory>
 #include <iostream>
-#include <list>
 #include <vector>
-class Cache :
-	public Memory
-{
-public:
-	Cache(unsigned int blockSize = 0, unsigned int setSize = 0, unsigned int totalSize = 0, unsigned int accessTime = 0) :
-		mBlockSize{ 1U << blockSize },
-		mSetSize { setSize },
-		mTotalSize{ 1U << totalSize },
-		mMissCount { 0 },
-		mHitCount { 0 }
-	{
-		mAccessTime = accessTime;
-		mSetCount = mTotalSize / (mBlockSize * mSetSize);
-		mIndex.resize(mSetCount, std::list<int>(0, 0)); 
-		mLowerMem = nullptr;
-	};
-	unsigned int readAddress(unsigned int address);
-	unsigned int writeAddress(unsigned int address);
-	void setLowerMem(std::shared_ptr<Memory> lowerMem) {
-		mLowerMem = lowerMem;
-	}
-	unsigned int getHitCount() {
-		return mHitCount;
-	}
-	unsigned int getMissCount() {
-		return mMissCount;
-	}
+#include <random>
 
-	void resetCache() {
-		//Used for clearing out the cache without changing any of the parameters
-		mIndex.resize(mSetCount, std::list<int>(0, 0));
-		mHitCount = 0;
-		mMissCount = 0;
-	}
+enum class Policy { FIFO = 1, LRU, Random };
+
+class Cache : public Memory {
+	static uint32_c mDirtyBit = 1U << 30;
+	static uint32_c mValidBit = 1U << 31;
+	friend std::ostream& operator<<(std::ostream& os, const Cache& c);
 
 private:
-	unsigned int mBlockSize; //offset. some power of 2.
-	unsigned int mSetSize;
-	unsigned int mTotalSize;
-	unsigned int mSetCount; //same as block count if setSize is 1.
-	unsigned int mHitCount;
-	unsigned int mMissCount;
-	static unsigned int const mDirtyBit = 1U << 30; //applied to blocks
-	//static unsigned int const mValidBi = 1U << 31; might not even use this but it's here for now
+	/*****	 Cache Set Config	 *****/
+	/* LRU | 0 | 1 | 2 |...| N | MRU */
+	std::vector<std::vector<unsigned int>> mSets;
+
+	// Cache parameters
+	unsigned int mBlockSize, mSetSize, mTotalSize, mSetCount;
+	Policy mPolicy;
+
+	// Cache statistics
+	unsigned int mStoreHit, mStoreMiss, mLoadHit, mLoadMiss, mDirtyEvict;
+
+	// Pointer to the next cache level or main memory
 	std::shared_ptr<Memory> mLowerMem;
-	std::vector<std::list<int>> mIndex;
+
+	// Random generator for Random Replacement strategy. Dis rolls between 0 and set size - 1 inclusive.
+	std::mt19937 gen;
+
+public:
+	Cache(uint32_c blockSize, uint32_c setSize, uint32_c totalSize, Policy policy, uint32_c accessTime);
+
+	// The read and write member functions are largely identical but have been kept separate so as not to oversimplify things.
+	uint32_c readAddress(uint32_c address);
+	uint32_c writeAddress(uint32_c address);
+	void setLowerMem(const std::shared_ptr<Memory> lowerMem) {
+		mLowerMem = lowerMem;
+	}
+	void resetCache() {
+		// Used for clearing out the cache without changing any of the parameters
+		for (auto& v : mSets)
+			v.clear();
+		mStoreHit = 0, mStoreMiss = 0, mLoadHit = 0, mLoadMiss = 0;
+	}
+
+	const double getAMAT() const {
+		return mAccessTime + ( (mLoadMiss + mStoreMiss) / ((double)mLoadMiss + mLoadHit + mStoreMiss + mStoreHit) ) * mLowerMem->getAMAT();
+	}
 };
 

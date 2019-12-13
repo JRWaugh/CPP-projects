@@ -1,10 +1,12 @@
 #pragma once
-class Memory
-{
+typedef unsigned int const uint32_c;
+
+class Memory {
 public:
-	virtual unsigned int readAddress(unsigned int address) = 0;
-	virtual unsigned int writeAddress(unsigned int address) = 0;
-	//virtual ~Memory() {}
+	virtual uint32_c readAddress(uint32_c address) = 0;
+	virtual uint32_c writeAddress(uint32_c address) = 0;
+	virtual const double getAMAT() const = 0;
+	virtual ~Memory() {}
 protected:
 	unsigned int mAccessTime;
 };

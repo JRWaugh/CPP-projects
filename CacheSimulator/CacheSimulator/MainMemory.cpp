@@ -1,9 +1,9 @@
 #include "MainMemory.h"
 
-unsigned int MainMemory::readAddress(unsigned int address) {
+uint32_c MainMemory::readAddress(uint32_c address) {
 	return mAccessTime;
 }
 
-unsigned int MainMemory::writeAddress(unsigned int address) {
+uint32_c MainMemory::writeAddress(uint32_c address) {
 	return mAccessTime;
 }

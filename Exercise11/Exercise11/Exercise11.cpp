@@ -54,7 +54,6 @@ int RandGen::operator()() {
 	do {
 		number = rand() % m_range + 1;
 	} while (find(numbers.begin(), numbers.end(), number) != numbers.end());
-	//find returns numbers.end() if it can't find any matches, which is what we want
 	numbers.push_back(number);
 	return number;
 }
