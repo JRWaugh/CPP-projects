@@ -4,20 +4,23 @@
 #endif
 #include <memory>
 #include <iostream>
+#include <iomanip>
 #include <vector>
 #include <random>
+
+using namespace std;
 
 enum class Policy { FIFO = 1, LRU, Random };
 
 class Cache : public Memory {
 	static uint32_c mDirtyBit = 1U << 30;
 	static uint32_c mValidBit = 1U << 31;
-	friend std::ostream& operator<<(std::ostream& os, const Cache& c);
+	friend ostream& operator<<(ostream& os, const Cache& c);
 
 private:
 	/*****	 Cache Set Config	 *****/
 	/* LRU | 0 | 1 | 2 |...| N | MRU */
-	std::vector<std::vector<unsigned int>> mSets;
+	vector<vector<unsigned int>> mSets;
 
 	// Cache parameters
 	unsigned int mBlockSize, mSetSize, mTotalSize, mSetCount;
@@ -27,10 +30,10 @@ private:
 	unsigned int mStoreHit, mStoreMiss, mLoadHit, mLoadMiss, mDirtyEvict;
 
 	// Pointer to the next cache level or main memory
-	std::shared_ptr<Memory> mLowerMem;
+	shared_ptr<Memory> mLowerMem;
 
 	// Random generator for Random Replacement strategy. Dis rolls between 0 and set size - 1 inclusive.
-	std::mt19937 gen;
+	mt19937 gen;
 
 public:
 	Cache(uint32_c blockSize, uint32_c setSize, uint32_c totalSize, Policy policy, uint32_c accessTime);
@@ -38,11 +41,13 @@ public:
 	// The read and write member functions are largely identical but have been kept separate so as not to oversimplify things.
 	uint32_c readAddress(uint32_c address);
 	uint32_c writeAddress(uint32_c address);
-	void setLowerMem(const std::shared_ptr<Memory> lowerMem) {
+	void setLowerMem(const shared_ptr<Memory> lowerMem) {
 		mLowerMem = lowerMem;
 	}
 	void resetCache() {
-		// Used for clearing out the cache without changing any of the parameters
+		/* Used for clearing out the cache without changing any of the parameters. 
+		 * Essentially makes the valid bit useless but it was included anyway.
+		 */
 		for (auto& v : mSets)
 			v.clear();
 		mStoreHit = 0, mStoreMiss = 0, mLoadHit = 0, mLoadMiss = 0;

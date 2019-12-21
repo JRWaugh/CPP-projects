@@ -4,11 +4,11 @@ Cache::Cache(uint32_c blockSize = 0, uint32_c setSize = 0, uint32_c totalSize = 
 	mBlockSize{ 1U << blockSize }, mSetSize{ setSize }, mTotalSize{ 1U << totalSize },
 	mDirtyEvict{ 0 }, mStoreHit{ 0 }, mStoreMiss{ 0 }, mLoadHit{ 0 }, mLoadMiss{ 0 },
 	mPolicy{ policy },
-	gen{ std::random_device{}() },
+	gen{ random_device{}() }
 {
 	mAccessTime = accessTime;
 	mSetCount = mTotalSize / (mBlockSize * mSetSize);
-	mSets.resize(mSetCount, std::vector<unsigned int>(0, 0));
+	mSets.resize(mSetCount, vector<unsigned int>(0, 0));
 	mLowerMem = nullptr;
 };
 
@@ -19,7 +19,7 @@ uint32_c Cache::readAddress(uint32_c address) {
 	unsigned int cycles = 0;
 
 	// This algorithm searches through the index for the desired tag.
-	auto tagIter = std::find_if(mSets[index].begin(), mSets[index].end(), [&](auto i) { 
+	auto tagIter = find_if(mSets[index].begin(), mSets[index].end(), [&](auto i) { 
 		return tag == ((i & ~(mValidBit | mDirtyBit)) / mBlockSize);
 		});
 
@@ -28,12 +28,13 @@ uint32_c Cache::readAddress(uint32_c address) {
 
 		if (mSets[index].size() == mSetSize) { // ... and the set is full
 			if (mPolicy == Policy::Random)
-				std::shuffle(mSets[index].begin(), mSets[index].end(), gen);
+				shuffle(mSets[index].begin(), mSets[index].end(), gen);
 			else // FIFO or LRU rotates everything 1 to the left so that the front element is now the back element
-				std::rotate(mSets[index].begin(), mSets[index].begin() + 1, mSets[index].end());
+				rotate(mSets[index].begin(), mSets[index].begin() + 1, mSets[index].end());
 
 			if (mSets[index].back() & mDirtyBit) { // ... and the back element has the dirty bit set
 				mDirtyEvict++;
+				// The sim can have differently sized blocks (eg. L2 smaller than L1) so this ensures everything behaves "properly". 
 				unsigned int reconstructedAddress =
 					((mSets[index].back() / mBlockSize) * mSetCount * mBlockSize) | (index * mBlockSize) | mSets[index].back() & (mBlockSize - 1);
 				cycles += mLowerMem->writeAddress(reconstructedAddress);
@@ -49,7 +50,7 @@ uint32_c Cache::readAddress(uint32_c address) {
 		mLoadHit++;
 		if (mPolicy == Policy::LRU && mSets[index].back() != *tagIter)
 			// Moves MRU block to the back of the set while maintaining the order of the other blocks.
-			std::rotate(tagIter, std::next(tagIter), mSets[index].end());
+			rotate(tagIter, next(tagIter), mSets[index].end());
 	}
 	return mAccessTime + cycles;
 }
@@ -60,7 +61,7 @@ uint32_c Cache::writeAddress(uint32_c address) {
 	int tag = blockNumber / mSetCount;
 	int cycles = 0;
 
-	auto tagIter = std::find_if(mSets[index].begin(), mSets[index].end(), [&](auto i) {
+	auto tagIter = find_if(mSets[index].begin(), mSets[index].end(), [&](auto i) {
 		return tag == ( (i & ~(mValidBit | mDirtyBit)) / mBlockSize);
 		});
 
@@ -69,9 +70,9 @@ uint32_c Cache::writeAddress(uint32_c address) {
 
 		if (mSets[index].size() == mSetSize) {
 			if (mPolicy == Policy::Random)
-				std::rotate(mSets[index].begin(), mSets[index].begin() + dis(gen), mSets[index].end());
+				shuffle(mSets[index].begin(), mSets[index].end(), gen);
 			else
-				std::rotate(mSets[index].begin(), mSets[index].begin() + 1, mSets[index].end());
+				rotate(mSets[index].begin(), mSets[index].begin() + 1, mSets[index].end());
 
 			if (mSets[index].back() & mDirtyBit) {
 				mDirtyEvict++;
@@ -79,7 +80,6 @@ uint32_c Cache::writeAddress(uint32_c address) {
 					((mSets[index].back() / mBlockSize) * mSetCount * mBlockSize) | (index * mBlockSize) | mSets[index].back() & (mBlockSize - 1);
 				cycles += mLowerMem->writeAddress(reconstructedAddress);
 			}
-
 			mSets[index].back() = mValidBit | mDirtyBit | (tag * mBlockSize) | (address & (mBlockSize - 1));
 		}
 		else
@@ -91,15 +91,19 @@ uint32_c Cache::writeAddress(uint32_c address) {
 		mStoreHit++;
 		*tagIter = mValidBit | mDirtyBit | (tag * mBlockSize) | (address & (mBlockSize - 1));
 		if (mPolicy == Policy::LRU && mSets[index].back() != *tagIter)
-			std::rotate(tagIter, std::next(tagIter), mSets[index].end());
+			rotate(tagIter, next(tagIter), mSets[index].end());
 	}
 	return mAccessTime + cycles;
 }
 
-std::ostream& operator<<(std::ostream& os, const Cache& c) {
-	return os << "Load Hit count: " << c.mLoadHit << "\tLoad Miss count: " << c.mLoadMiss << std::endl <<
-		"Store Hit count: " << c.mStoreHit << "\tStore Miss count: " << c.mStoreMiss << std::endl <<
-		"Dirty evictions: " << c.mDirtyEvict << "\tHit ratio: " <<
-		((double)c.mLoadHit + c.mStoreHit) / ((double)c.mLoadHit + c.mLoadMiss + c.mStoreHit + c.mStoreMiss) << std::endl <<
-		"Average Memory Access Time: " << c.getAMAT();
+ostream& operator<<(ostream& os, const Cache& c) {
+	return os << 
+		left << setw(20) << "Load Hit count:"   << right << setw(10) << c.mLoadHit    << "\t" << 
+		left << setw(20) << "Load Miss count:"  << right << setw(10) << c.mLoadMiss   << endl <<
+		left << setw(20) << "Store Hit count:"  << right << setw(10) << c.mStoreHit   << "\t" << 
+		left << setw(20) << "Store Miss count:" << right << setw(10) << c.mStoreMiss  << endl <<
+		left << setw(20) << "Dirty evictions:"  << right << setw(10) << c.mDirtyEvict << "\t" << 
+		left << setw(20) << "Hit ratio:"		<< right << setw(10) <<
+		((double)c.mLoadHit + c.mStoreHit) / ((double)c.mLoadHit + c.mLoadMiss + c.mStoreHit + c.mStoreMiss) << endl <<
+		left << setw(20) << "Average Access Time:" << right << setw(10) << c.getAMAT();
 }
