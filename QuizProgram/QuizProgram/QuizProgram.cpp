@@ -2,57 +2,70 @@
 #include <fstream>
 #include <vector>
 #include <iterator>
+#include <algorithm>
 #include "Question.h"
 
-constexpr auto QUIT = '7';
+enum class Selection { INIT = 1, SAVE, LOAD, NEW, QUIZ, REPORT, QUIT };
+
 int main()
 {
 	std::vector<Question> questions;
-	std::string selection;
+	std::string line;
 	std::fstream fs;
+	Selection selection = Selection::INIT;
+
 	unsigned int score = 0;
 
-	while (selection[0] != QUIT) {
+	while (selection != Selection::QUIT) {
 		do {
 			std::cout << "=== Quiz Program ===\n1. Initialise\n2. Save to disk\n3. Read from disk" << std::endl <<
 				"4. Create new question\n5. Take the quiz\n6. Print report\n7. Exit program" << std::endl <<
 				"Input: ";
-			getline(std::cin, selection);
-		} while (selection.find_first_of("1234567") && std::cout << "Invalid input." << std::endl);
+			getline(std::cin, line);
+		} while (line.find_first_of("1234567") && std::cout << "Invalid input." << std::endl);
 
-		switch (selection[0]) {
-		case '1': // Init
+		selection = static_cast<Selection>(line[0] - '0');
+
+		switch (selection) {
+		case Selection::INIT:
 			std::cout << "Init test." << std::endl; // Not sure if init clears memory or clears the file so I didn't write anything.
+
 			break;
 
-		case '2': // Save
-			// Read and write are being done in a naive way that is not checking for duplicates.
+		case Selection::SAVE:
 			fs.open("quiz.txt", std::fstream::in | std::fstream::out | std::fstream::app);
 			if (fs.is_open()) {
-				for (const auto& q : questions)
-					fs << q << std::endl;
+				for (auto& q : questions)
+					if (!q.is_written()) {
+						q.set_written(true);
+						fs << q << std::endl;
+					}
 				fs.close();
 			}
 			else
 				std::cout << "Could not open file." << std::endl;
+
 			break;
 
-		case '3': // Load
+		case Selection::LOAD:
 			fs.open("quiz.txt", std::fstream::in | std::fstream::out | std::fstream::app);
 			if (fs.is_open()) {
-				questions.clear();
+				// Will remove elements from the vector if they're already written because they're about to be read from file again.
+				questions.erase(std::remove_if(questions.begin(), questions.end(), [](auto& q) { return q.is_written(); }), questions.end());
 				Question q;
 				while (fs >> q) {
+					q.set_written(true);
 					questions.push_back(q);
 				}
 				fs.close();
 			}
 			std::cout << "Read test." << std::endl;
+
 			break;
 
-		case '4': // Make new question
+		case Selection::NEW:
 		{
-			std::string question, line;
+			std::string question;
 			std::vector<std::string> answers;
 			unsigned char correct_answer;
 			
@@ -78,21 +91,31 @@ int main()
 			} while (line.find_first_of("ny") && std::cout << "Invalid input" << std::endl);
 
 		}
-		break;
 
-		case '5': // Take quiz
+			break;
+
+		case Selection::QUIZ:
 			score = 0;
+			if (questions.empty() && std::cout << "There are no questions. Try creating some first or loading some from the file." << std::endl)
+				break;
+
 			for (auto& q : questions)
 				score += q.play_question();
+
 			break;
 
-		case '6': // Print report
+		case Selection::REPORT:
+			if (questions.empty() && std::cout << "There are no questions. Try creating some first or loading some from the file." << std::endl)
+				break;
+
 			for (const auto& q : questions)
 				std::cout << q.get_question() << std::endl;
+
 			break;
 
-		case '7': // Close program
+		case Selection::QUIT:
 			std::cout << "Closing program." << std::endl;
+
 			break;
 		}
 	}
