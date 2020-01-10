@@ -8,6 +8,6 @@ public:
 	virtual const double getAMAT() const = 0;
 	virtual ~Memory() {}
 protected:
-	unsigned int mAccessTime;
+	unsigned int mAccessTime = 0;
 };
 

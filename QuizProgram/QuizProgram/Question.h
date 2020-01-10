@@ -10,7 +10,7 @@ class Question
 {
 	
 public:
-	Question(std::string question = "Empty", std::vector<std::string> answers = {4, "Empty"}, std::string correct_answer = UNINIT, bool written = false):
+	Question(std::string question = R"(Empty)"	, std::vector<std::string> answers = {4, "Empty"}, std::string correct_answer = UNINIT, bool written = false):
 		m_question {question},
 		m_answers {answers},
 		m_correct_answer {correct_answer},

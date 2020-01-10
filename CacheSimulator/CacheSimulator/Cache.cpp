@@ -1,7 +1,7 @@
 #include "Cache.h"
 
 Cache::Cache(uint32_c blockSize = 0, uint32_c setSize = 0, uint32_c totalSize = 0, Policy policy = Policy::LRU, uint32_c accessTime = 0) :
-	mBlockSize{ 1U << blockSize }, mSetSize{ setSize }, mTotalSize{ 1U << totalSize },
+	mBlockSize{ 1U << blockSize }, mSetSize{ 1U << setSize }, mTotalSize{ 1U << totalSize },
 	mDirtyEvict{ 0 }, mStoreHit{ 0 }, mStoreMiss{ 0 }, mLoadHit{ 0 }, mLoadMiss{ 0 },
 	mPolicy{ policy },
 	gen{ random_device{}() }
@@ -19,8 +19,8 @@ uint32_c Cache::readAddress(uint32_c address) {
 	unsigned int cycles = 0;
 
 	// This algorithm searches through the index for the desired tag.
-	auto tagIter = find_if(mSets[index].begin(), mSets[index].end(), [&](auto i) { 
-		return tag == ((i & ~(mValidBit | mDirtyBit)) / mBlockSize);
+	auto tagIter = find_if(mSets[index].begin(), mSets[index].end(), [&](auto block) {
+		return (block & mValidBit) ? tag == (block & ~(mValidBit | mDirtyBit)) / mBlockSize : false;
 		});
 
 	if (tagIter == mSets[index].end()) { // The tag was not found...
@@ -30,26 +30,26 @@ uint32_c Cache::readAddress(uint32_c address) {
 			if (mPolicy == Policy::Random)
 				shuffle(mSets[index].begin(), mSets[index].end(), gen);
 			else // FIFO or LRU rotates everything 1 to the left so that the front element is now the back element
-				rotate(mSets[index].begin(), mSets[index].begin() + 1, mSets[index].end());
+				rotate(mSets[index].begin(), next(mSets[index].begin()), mSets[index].end());
 
 			if (mSets[index].back() & mDirtyBit) { // ... and the back element has the dirty bit set
 				mDirtyEvict++;
-				// The sim can have differently sized blocks (eg. L2 smaller than L1) so this ensures everything behaves "properly". 
-				unsigned int reconstructedAddress =
-					((mSets[index].back() / mBlockSize) * mSetCount * mBlockSize) | (index * mBlockSize) | mSets[index].back() & (mBlockSize - 1);
-				cycles += mLowerMem->writeAddress(reconstructedAddress);
+				/* The sim can have differently sized blocks (eg. L2 smaller than L1) so reconstructing
+				 * the address this way ensures everything behaves "properly". 
+				 */
+				cycles += mLowerMem->writeAddress((mSets[index].back() * mSetCount) | (index * mBlockSize) | (mSets[index].back() & (mBlockSize - 1)));
 			}
-			mSets[index].back() = mValidBit | (tag * mBlockSize) | (address & (mBlockSize - 1));
+			mSets[index].back()  =  mValidBit | (tag * mBlockSize) | (address & (mBlockSize - 1));
 		}
 		else
-			mSets[index].push_back(mValidBit | (tag * mBlockSize) | (address & (mBlockSize - 1)));
+			mSets[index].push_back( mValidBit | (tag * mBlockSize) | (address & (mBlockSize - 1)) );
 
 		cycles += mLowerMem->readAddress(address);			
 	}
 	else {
 		mLoadHit++;
 		if (mPolicy == Policy::LRU && mSets[index].back() != *tagIter)
-			// Moves MRU block to the back of the set while maintaining the order of the other blocks.
+			// Moves accessed block to the back of the set (MRU) while maintaining the order of the other blocks.
 			rotate(tagIter, next(tagIter), mSets[index].end());
 	}
 	return mAccessTime + cycles;
@@ -61,8 +61,8 @@ uint32_c Cache::writeAddress(uint32_c address) {
 	int tag = blockNumber / mSetCount;
 	int cycles = 0;
 
-	auto tagIter = find_if(mSets[index].begin(), mSets[index].end(), [&](auto i) {
-		return tag == ( (i & ~(mValidBit | mDirtyBit)) / mBlockSize);
+	auto tagIter = find_if(mSets[index].begin(), mSets[index].end(), [&](auto block) {
+		return (block & mValidBit) ? tag == (block & ~(mValidBit | mDirtyBit)) / mBlockSize : false;
 		});
 
 	if (tagIter == mSets[index].end()) {
@@ -72,18 +72,16 @@ uint32_c Cache::writeAddress(uint32_c address) {
 			if (mPolicy == Policy::Random)
 				shuffle(mSets[index].begin(), mSets[index].end(), gen);
 			else
-				rotate(mSets[index].begin(), mSets[index].begin() + 1, mSets[index].end());
+				rotate(mSets[index].begin(), next(mSets[index].begin()), mSets[index].end());
 
 			if (mSets[index].back() & mDirtyBit) {
 				mDirtyEvict++;
-				unsigned int reconstructedAddress =
-					((mSets[index].back() / mBlockSize) * mSetCount * mBlockSize) | (index * mBlockSize) | mSets[index].back() & (mBlockSize - 1);
-				cycles += mLowerMem->writeAddress(reconstructedAddress);
+				cycles += mLowerMem->writeAddress((mSets[index].back() * mSetCount) | (index * mBlockSize) | (mSets[index].back() & (mBlockSize - 1)));
 			}
-			mSets[index].back() = mValidBit | mDirtyBit | (tag * mBlockSize) | (address & (mBlockSize - 1));
+			mSets[index].back()  =  mValidBit | mDirtyBit | (tag * mBlockSize) | (address & (mBlockSize - 1));
 		}
 		else
-			mSets[index].push_back(mValidBit | mDirtyBit | (tag * mBlockSize) | (address & (mBlockSize - 1)));
+			mSets[index].push_back( mValidBit | mDirtyBit | (tag * mBlockSize) | (address & (mBlockSize - 1)) );
 
 		cycles += mLowerMem->readAddress(address);
 	}
@@ -98,10 +96,10 @@ uint32_c Cache::writeAddress(uint32_c address) {
 
 ostream& operator<<(ostream& os, const Cache& c) {
 	return os << 
-		left << setw(20) << "Load Hit count:"   << right << setw(10) << c.mLoadHit    << "\t" << 
-		left << setw(20) << "Load Miss count:"  << right << setw(10) << c.mLoadMiss   << endl <<
-		left << setw(20) << "Store Hit count:"  << right << setw(10) << c.mStoreHit   << "\t" << 
-		left << setw(20) << "Store Miss count:" << right << setw(10) << c.mStoreMiss  << endl <<
+		left << setw(20) << "Load hit count:"   << right << setw(10) << c.mLoadHit    << "\t" << 
+		left << setw(20) << "Load miss count:"  << right << setw(10) << c.mLoadMiss   << endl <<
+		left << setw(20) << "Store hit count:"  << right << setw(10) << c.mStoreHit   << "\t" << 
+		left << setw(20) << "Store miss count:" << right << setw(10) << c.mStoreMiss  << endl <<
 		left << setw(20) << "Dirty evictions:"  << right << setw(10) << c.mDirtyEvict << "\t" << 
 		left << setw(20) << "Hit ratio:"		<< right << setw(10) <<
 		((double)c.mLoadHit + c.mStoreHit) / ((double)c.mLoadHit + c.mLoadMiss + c.mStoreHit + c.mStoreMiss) << endl <<

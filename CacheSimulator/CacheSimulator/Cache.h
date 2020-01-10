@@ -22,39 +22,42 @@ private:
 	/* LRU | 0 | 1 | 2 |...| N | MRU */
 	vector<vector<unsigned int>> mSets;
 
-	// Cache parameters
+	/* Cache parameters. */
 	unsigned int mBlockSize, mSetSize, mTotalSize, mSetCount;
 	Policy mPolicy;
 
-	// Cache statistics
+	/* Cache statistics. */
 	unsigned int mStoreHit, mStoreMiss, mLoadHit, mLoadMiss, mDirtyEvict;
 
-	// Pointer to the next cache level or main memory
+	/* Pointer to the next cache level or main memory. */
 	shared_ptr<Memory> mLowerMem;
 
-	// Random generator for Random Replacement strategy. Dis rolls between 0 and set size - 1 inclusive.
+	/* Random generator for Random Replacement strategy. */
 	mt19937 gen;
 
 public:
 	Cache(uint32_c blockSize, uint32_c setSize, uint32_c totalSize, Policy policy, uint32_c accessTime);
 
-	// The read and write member functions are largely identical but have been kept separate so as not to oversimplify things.
+	/* The read and write member functions are largely identical but have been kept separate anyway. */
 	uint32_c readAddress(uint32_c address);
 	uint32_c writeAddress(uint32_c address);
 	void setLowerMem(const shared_ptr<Memory> lowerMem) {
 		mLowerMem = lowerMem;
 	}
-	void resetCache() {
-		/* Used for clearing out the cache without changing any of the parameters. 
-		 * Essentially makes the valid bit useless but it was included anyway.
-		 */
-		for (auto& v : mSets)
-			v.clear();
-		mStoreHit = 0, mStoreMiss = 0, mLoadHit = 0, mLoadMiss = 0;
+
+	void invalidateCache() {
+		/* Unsets the valid bits in each block in each set of the cache. Should be called when a new file is read. */
+		for (auto& set : mSets)
+			for (auto& block : set)
+				block &= ~mValidBit;
+	}
+	void resetCacheStats() {
+		/* Used for clearing out cache statistics without changing any of the parameters. */
+		mDirtyEvict = mStoreHit = mStoreMiss = mLoadHit = mLoadMiss = 0;
 	}
 
 	const double getAMAT() const {
-		return mAccessTime + ( (mLoadMiss + mStoreMiss) / ((double)mLoadMiss + mLoadHit + mStoreMiss + mStoreHit) ) * mLowerMem->getAMAT();
+		return (double)mAccessTime + ( ((double)mLoadMiss + mStoreMiss) / ((double)mLoadMiss + mLoadHit + mStoreMiss + mStoreHit) ) * mLowerMem->getAMAT();
 	}
 };
 
