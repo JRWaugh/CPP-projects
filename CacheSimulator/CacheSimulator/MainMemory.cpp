@@ -1,9 +1,9 @@
 #include "MainMemory.h"
 
-uint32_c MainMemory::readAddress(uint32_c address) {
+uintc32_t MainMemory::readAddress(uintc32_t address) {
 	return mAccessTime;
 }
 
-uint32_c MainMemory::writeAddress(uint32_c address) {
+uintc32_t MainMemory::writeAddress(uintc32_t address) {
 	return mAccessTime;
 }

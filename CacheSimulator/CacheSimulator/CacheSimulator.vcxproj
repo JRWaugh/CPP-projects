@@ -154,12 +154,10 @@
     <ClCompile Include="Cache.cpp" />
     <ClCompile Include="CacheSimulator.cpp" />
     <ClCompile Include="MainMemory.cpp" />
-    <ClCompile Include="Memory.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Cache.h" />
     <ClInclude Include="MainMemory.h" />
-    <ClInclude Include="Memory.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

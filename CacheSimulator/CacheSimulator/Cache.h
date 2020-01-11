@@ -1,7 +1,6 @@
-#ifndef MEMORY_H
-#define MEMORY_H
-#include "Memory.h"
-#endif
+#ifndef CACHE_H
+#define CACHE_H
+#include "MainMemory.h"
 #include <memory>
 #include <iostream>
 #include <iomanip>
@@ -12,36 +11,37 @@ using namespace std;
 
 enum class Policy { FIFO = 1, LRU, Random };
 
-class Cache : public Memory {
-	static uint32_c mDirtyBit = 1U << 30;
-	static uint32_c mValidBit = 1U << 31;
+class Cache : public MainMemory {
+	static const unsigned char mDirtyBit = 1;
+	static const unsigned char mValidBit = 2;
 	friend ostream& operator<<(ostream& os, const Cache& c);
 
 private:
 	/*****	 Cache Set Config	 *****/
 	/* LRU | 0 | 1 | 2 |...| N | MRU */
-	vector<vector<unsigned int>> mSets;
+	vector<vector<pair<unsigned char, unsigned int>>> mSets;
 
 	/* Cache parameters. */
-	unsigned int mBlockSize, mSetSize, mTotalSize, mSetCount;
+	uintc32_t mBlockSize, mSetSize, mTotalSize, mSetCount;
 	Policy mPolicy;
 
 	/* Cache statistics. */
 	unsigned int mStoreHit, mStoreMiss, mLoadHit, mLoadMiss, mDirtyEvict;
 
 	/* Pointer to the next cache level or main memory. */
-	shared_ptr<Memory> mLowerMem;
+	shared_ptr<MainMemory> mLowerMem;
 
 	/* Random generator for Random Replacement strategy. */
 	mt19937 gen;
 
 public:
-	Cache(uint32_c blockSize, uint32_c setSize, uint32_c totalSize, Policy policy, uint32_c accessTime);
+	Cache(uintc32_t blockSize, uintc32_t setSize, uintc32_t totalSize, Policy policy, uintc32_t accessTime, uintc32_t accessTimeLower);
 
 	/* The read and write member functions are largely identical but have been kept separate anyway. */
-	uint32_c readAddress(uint32_c address);
-	uint32_c writeAddress(uint32_c address);
-	void setLowerMem(const shared_ptr<Memory> lowerMem) {
+	uintc32_t readAddress(uintc32_t address);
+	uintc32_t writeAddress(uintc32_t address);
+
+	void setLowerMem(const shared_ptr<MainMemory> lowerMem) {
 		mLowerMem = lowerMem;
 	}
 
@@ -49,7 +49,8 @@ public:
 		/* Unsets the valid bits in each block in each set of the cache. Should be called when a new file is read. */
 		for (auto& set : mSets)
 			for (auto& block : set)
-				block &= ~mValidBit;
+				block.first &= ~mValidBit;
+				
 	}
 	void resetCacheStats() {
 		/* Used for clearing out cache statistics without changing any of the parameters. */
@@ -60,4 +61,4 @@ public:
 		return (double)mAccessTime + ( ((double)mLoadMiss + mStoreMiss) / ((double)mLoadMiss + mLoadHit + mStoreMiss + mStoreHit) ) * mLowerMem->getAMAT();
 	}
 };
-
+#endif

@@ -1,26 +1,24 @@
 #include "Cache.h"
 
-Cache::Cache(uint32_c blockSize = 0, uint32_c setSize = 0, uint32_c totalSize = 0, Policy policy = Policy::LRU, uint32_c accessTime = 0) :
-	mBlockSize{ 1U << blockSize }, mSetSize{ 1U << setSize }, mTotalSize{ 1U << totalSize },
-	mDirtyEvict{ 0 }, mStoreHit{ 0 }, mStoreMiss{ 0 }, mLoadHit{ 0 }, mLoadMiss{ 0 },
-	mPolicy{ policy },
+Cache::Cache(uintc32_t blockSize = 0, uintc32_t setSize = 0, uintc32_t totalSize = 0, Policy policy = Policy::LRU, uintc32_t accessTime = 0, uintc32_t accessTimeLower = 0) :
+	mBlockSize{ 1U << blockSize }, mSetSize{ 1U << setSize }, mTotalSize{ 1U << totalSize }, mSetCount{ mTotalSize / (mBlockSize * mSetSize) }, mPolicy{ policy },
+	mStoreHit{ 0 }, mStoreMiss{ 0 }, mLoadHit{ 0 }, mLoadMiss{ 0 }, mDirtyEvict{ 0 },
+	mLowerMem { make_shared<MainMemory>(accessTimeLower) },
 	gen{ random_device{}() }
 {
 	mAccessTime = accessTime;
-	mSetCount = mTotalSize / (mBlockSize * mSetSize);
-	mSets.resize(mSetCount, vector<unsigned int>(0, 0));
-	mLowerMem = nullptr;
+	mSets.resize(mSetCount);
 };
 
-uint32_c Cache::readAddress(uint32_c address) {
-	uint32_c blockNumber = address / mBlockSize;
-	uint32_c index = blockNumber % mSetCount;
-	uint32_c tag = blockNumber / mSetCount;
-	unsigned int cycles = 0;
+uintc32_t Cache::readAddress(uintc32_t address) {
+	uintc32_t blockNumber = address / mBlockSize;
+	uintc32_t index = blockNumber % mSetCount;
+	uintc32_t tag = blockNumber / mSetCount;
+	unsigned int cycles = mAccessTime;
 
 	// This algorithm searches through the index for the desired tag.
 	auto tagIter = find_if(mSets[index].begin(), mSets[index].end(), [&](auto block) {
-		return (block & mValidBit) ? tag == (block & ~(mValidBit | mDirtyBit)) / mBlockSize : false;
+		return (block.first & mValidBit) ? tag == block.second / mBlockSize : false;
 		});
 
 	if (tagIter == mSets[index].end()) { // The tag was not found...
@@ -32,17 +30,18 @@ uint32_c Cache::readAddress(uint32_c address) {
 			else // FIFO or LRU rotates everything 1 to the left so that the front element is now the back element
 				rotate(mSets[index].begin(), next(mSets[index].begin()), mSets[index].end());
 
-			if (mSets[index].back() & mDirtyBit) { // ... and the back element has the dirty bit set
+			if (mSets[index].back().first & mDirtyBit) { // ... and the back element has the dirty bit set
 				mDirtyEvict++;
 				/* The sim can have differently sized blocks (eg. L2 smaller than L1) so reconstructing
 				 * the address this way ensures everything behaves "properly". 
 				 */
-				cycles += mLowerMem->writeAddress((mSets[index].back() * mSetCount) | (index * mBlockSize) | (mSets[index].back() & (mBlockSize - 1)));
+				auto reconstructedAddress = ((mSets[index].back().second / mBlockSize) * mSetCount * mBlockSize | (index * mBlockSize) | (mSets[index].back().second & (mBlockSize - 1)));
+				cycles += mLowerMem->writeAddress(reconstructedAddress);
 			}
-			mSets[index].back()  =  mValidBit | (tag * mBlockSize) | (address & (mBlockSize - 1));
+			mSets[index].back() = make_pair(mValidBit, (tag * mBlockSize) | (address & (mBlockSize - 1)));
 		}
 		else
-			mSets[index].push_back( mValidBit | (tag * mBlockSize) | (address & (mBlockSize - 1)) );
+			mSets[index].push_back(make_pair(mValidBit, (tag * mBlockSize) | (address & (mBlockSize - 1))));
 
 		cycles += mLowerMem->readAddress(address);			
 	}
@@ -52,17 +51,17 @@ uint32_c Cache::readAddress(uint32_c address) {
 			// Moves accessed block to the back of the set (MRU) while maintaining the order of the other blocks.
 			rotate(tagIter, next(tagIter), mSets[index].end());
 	}
-	return mAccessTime + cycles;
+	return cycles;
 }
 
-uint32_c Cache::writeAddress(uint32_c address) {
+uintc32_t Cache::writeAddress(uintc32_t address) {
 	int blockNumber = address / mBlockSize;
 	int index = blockNumber % mSetCount; 
 	int tag = blockNumber / mSetCount;
-	int cycles = 0;
+	int cycles = mAccessTime;
 
 	auto tagIter = find_if(mSets[index].begin(), mSets[index].end(), [&](auto block) {
-		return (block & mValidBit) ? tag == (block & ~(mValidBit | mDirtyBit)) / mBlockSize : false;
+		return (block.first & mValidBit) ? tag == block.second / mBlockSize : false;
 		});
 
 	if (tagIter == mSets[index].end()) {
@@ -74,24 +73,25 @@ uint32_c Cache::writeAddress(uint32_c address) {
 			else
 				rotate(mSets[index].begin(), next(mSets[index].begin()), mSets[index].end());
 
-			if (mSets[index].back() & mDirtyBit) {
+			if (mSets[index].back().first & mDirtyBit) {
 				mDirtyEvict++;
-				cycles += mLowerMem->writeAddress((mSets[index].back() * mSetCount) | (index * mBlockSize) | (mSets[index].back() & (mBlockSize - 1)));
+				auto reconstructedAddress = ( (mSets[index].back().second / mBlockSize) * mSetCount * mBlockSize | (index * mBlockSize) | (mSets[index].back().second & (mBlockSize - 1)) );
+				cycles += mLowerMem->writeAddress(reconstructedAddress);
 			}
-			mSets[index].back()  =  mValidBit | mDirtyBit | (tag * mBlockSize) | (address & (mBlockSize - 1));
+			mSets[index].back() = make_pair(mValidBit | mDirtyBit, (tag * mBlockSize) | (address & (mBlockSize - 1)));
 		}
 		else
-			mSets[index].push_back( mValidBit | mDirtyBit | (tag * mBlockSize) | (address & (mBlockSize - 1)) );
+			mSets[index].push_back(make_pair(mValidBit | mDirtyBit, (tag * mBlockSize) | (address & (mBlockSize - 1))));
 
 		cycles += mLowerMem->readAddress(address);
 	}
 	else {
 		mStoreHit++;
-		*tagIter = mValidBit | mDirtyBit | (tag * mBlockSize) | (address & (mBlockSize - 1));
+		*tagIter = make_pair(mValidBit | mDirtyBit, (tag * mBlockSize) | (address & (mBlockSize - 1)));
 		if (mPolicy == Policy::LRU && mSets[index].back() != *tagIter)
 			rotate(tagIter, next(tagIter), mSets[index].end());
 	}
-	return mAccessTime + cycles;
+	return cycles;
 }
 
 ostream& operator<<(ostream& os, const Cache& c) {

@@ -1,22 +1,20 @@
-#ifndef MEMORY_H
-#define MEMORY_H
-#include "Memory.h"
-#endif
-class MainMemory :
-	public Memory
-{
+#ifndef MMEMORY_H
+#define MMEMORY_H
+typedef const unsigned int uintc32_t;
+
+class MainMemory {
+protected:
+	unsigned int mAccessTime = 0;
+
 public:
-	MainMemory(uint32_c accessTime = 400) {
-		mAccessTime = accessTime;
-	};
-	void setAccessTime(uint32_c accessTime) {
+	MainMemory(uintc32_t accessTime = 400) {
 		mAccessTime = accessTime;
 	};
 
-	uint32_c readAddress(uint32_c address);
-	uint32_c writeAddress(uint32_c address);
-	const double getAMAT() const {
+	virtual uintc32_t readAddress(uintc32_t address);
+	virtual uintc32_t writeAddress(uintc32_t address);
+	virtual const double getAMAT() const {
 		return mAccessTime;
 	}
 };
-
+#endif
