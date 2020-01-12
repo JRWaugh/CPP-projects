@@ -13,7 +13,6 @@ std::optional<uintc32_t> Cache::accessAddress(uintc32_t address, const unsigned 
 	/* This function will return an option containing either a value (cycles) or a nullopt.
 	 * This was an exercise in rudimentary error handling and isn't all that useful.
 	 */
-
 	uintc32_t blockNumber = address / mBlockSize;
 	uintc32_t index = blockNumber % mSetCount;
 	uintc32_t tag = blockNumber / mSetCount;
@@ -67,7 +66,7 @@ std::optional<uintc32_t> Cache::accessAddress(uintc32_t address, const unsigned 
 			return nullopt;
 
 		if (mPolicy == Policy::LRU && mSets[index].back() != *tagIter)
-			// Moves accessed block to the back of the set (MRU) while maintaining the order of the other blocks.
+			/* Moves accessed block to the back of the set (MRU) while maintaining the order of the other blocks. */
 			rotate(tagIter, next(tagIter), mSets[index].end());
 	}
 	return cycles;
