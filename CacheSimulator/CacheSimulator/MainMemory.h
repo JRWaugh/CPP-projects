@@ -5,7 +5,7 @@ constexpr char load = 'l', store = 's';
 
 class MainMemory {
 protected:
-	unsigned int mAccessTime = 0;
+	unsigned int mAccessTime;
 
 public:
 	MainMemory(uintc32_t accessTime = 400) : mAccessTime{ accessTime } {};

@@ -43,7 +43,7 @@ int main()
 				std::cout << "Invalid input." << std::endl;
 			cacheCount = std::stoi(input);
 
-			for (unsigned int i = 0; i < cacheCount; i++) {
+			for (unsigned int i = 0; i < cacheCount; ++i) {
 				std::cout << "\nL" << i + 1 << " Cache Initialisation:" << std::endl;
 
 				while(std::cout << "Enter block size in bytes as a power of 2: 2^" && getline(std::cin, input) && input.find_first_of("0123456789"))
@@ -68,10 +68,17 @@ int main()
 					std::cout << "Invalid input." << std::endl;
 				hitTime = std::stoi(input);
 
-				caches.emplace_back(new Cache(blockSize, setSize, totalSize, (Policy)policy, hitTime, memoryHitTime));
+				if (totalSize < 31) {
+					caches.emplace_back(new Cache(blockSize, setSize, totalSize, (Policy)policy, hitTime, memoryHitTime));
+					if (i > 0)
+						caches[i - 1]->setLowerMem(caches[i]);
+				}
+				else {
+					std::cout << "Invalid cache settings! Total size can not exceed 2^31 bytes." << std::endl;
+					--i;
+				}
 
-				if (i > 0)
-					caches[i - 1]->setLowerMem(caches[i]);
+				
 			}
 			std::cout << std::endl;
 		}

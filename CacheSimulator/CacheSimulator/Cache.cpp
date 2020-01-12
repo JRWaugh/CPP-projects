@@ -1,11 +1,11 @@
 #include "Cache.h"
 
 Cache::Cache(uintc32_t blockSize = 0, uintc32_t setSize = 0, uintc32_t totalSize = 0, Policy policy = Policy::LRU, uintc32_t accessTime = 0, uintc32_t accessTimeLower = 0) :
+	MainMemory { accessTime },
 	mBlockSize{ 1U << blockSize }, mSetSize{ 1U << setSize }, mTotalSize{ 1U << totalSize }, mSetCount{ mTotalSize / (mBlockSize * mSetSize) }, mPolicy{ policy },
 	mStoreHit{ 0 }, mStoreMiss{ 0 }, mLoadHit{ 0 }, mLoadMiss{ 0 }, mDirtyEvict{ 0 },
 	mLowerMem { make_shared<MainMemory>(accessTimeLower) }, gen{ random_device{}() }
 {
-	mAccessTime = accessTime;
 	mSets.resize(mSetCount);
 };
 
@@ -25,7 +25,7 @@ uintc32_t Cache::accessAddress(uintc32_t address, const unsigned char instructio
 			if (mPolicy == Policy::Random)
 				shuffle(mSets[index].begin(), mSets[index].end(), gen);
 			else 
-				/* FIFO or LRU rotates everything 1 to the left so that the front (LRU) element is at the back so it can be removed. */
+				/* If FIFO or LRU, rotate the front (LRU) element to the back so it can be removed. */
 				rotate(mSets[index].begin(), next(mSets[index].begin()), mSets[index].end());
 
 			if (mSets[index].back().first & mDirtyBit) { // ... and the back element has the dirty bit set
@@ -75,9 +75,10 @@ uintc32_t Cache::accessAddress(uintc32_t address, const unsigned char instructio
 		else
 			return -1;
 
-		if (mPolicy == Policy::LRU && mSets[index].back() != *tagIter)
+		if (mPolicy == Policy::LRU) {
 			/* Moves accessed block to the back of the set (MRU) while maintaining the order of the other blocks. */
 			rotate(tagIter, next(tagIter), mSets[index].end());
+		}
 	}
 	return cycles;
 }
