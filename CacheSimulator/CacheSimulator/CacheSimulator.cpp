@@ -27,7 +27,7 @@ int main()
 			getline(std::cin, input) &&
 			input.find_first_of("1234") )
 			std::cout << "Invalid input." << std::endl;
-		choice = (Choice)(input[0] - '0');
+		choice = static_cast<Choice>(input[0] - '0');
 		std::cout << std::endl;
 
 		switch (choice) {
@@ -38,45 +38,42 @@ int main()
 			
 			while(std::cout << "Enter memory access time: " && getline(std::cin, input) && input.find_first_of("0123456789"))
 				std::cout << "Invalid input." << std::endl;
-			std::istringstream(input) >> memoryHitTime;
+			memoryHitTime = std::stoi(input);
 
 			while (std::cout << "Enter number of cache levels: " && getline(std::cin, input) && input.find_first_of("123456789"))
 				std::cout << "Invalid input." << std::endl;
-			std::istringstream(input) >> cacheCount;
+			cacheCount = std::stoi(input);
 
 			for (unsigned int i = 0; i < cacheCount; i++) {
 				std::cout << "\nL" << i + 1 << " Cache Initialisation:" << std::endl;
 
-				while(std::cout << "Enter block size as a power of 2: 2^" && getline(std::cin, input) && input.find_first_of("0123456789"))
+				while(std::cout << "Enter block size in bytes as a power of 2: 2^" && getline(std::cin, input) && input.find_first_of("0123456789"))
 					std::cout << "Invalid input." << std::endl;
-				std::istringstream(input) >> blockSize;
+				blockSize = std::stoi(input);
 
-				while(std::cout << "Enter set size as a power of 2: 2^" && getline(std::cin, input) && input.find_first_of("0123456789"))
+				while(std::cout << "Enter set size in bytes as a power of 2: 2^" && getline(std::cin, input) && input.find_first_of("0123456789"))
 					std::cout << "Invalid input." << std::endl;
-				std::istringstream(input) >> setSize;
+				setSize = std::stoi(input);
 
-				while(std::cout << "Enter total cache size as a power of 2 (must be at least 2^" << blockSize + setSize << "): 2^" && 
+				while(std::cout << "Enter total cache size in bytes as a power of 2 (must be at least 2^" << blockSize + setSize << "): 2^" && 
 					getline(std::cin, input) && 
-					std::istringstream(input) >> totalSize && 
 					input.find_first_of("0123456789") || 
-					totalSize < blockSize + setSize )
-					std::cout << "Invalid input." << std::endl;
-				
+					(totalSize = std::stoi(input)) < blockSize + setSize )
+					std::cout << "Invalid input." << std::endl; 
 
 				while(std::cout << "Select replacement policy (1. FIFO, 2. LRU, 3. Random): " && getline(std::cin, input) && input.find_first_of("123"))
 					std::cout << "Invalid input." << std::endl;
-				std::istringstream(input) >> policy;
+				policy = std::stoi(input);
 
 				while(std::cout << "Enter hit time: " && getline(std::cin, input) && input.find_first_of("0123456789"))
 					std::cout << "Invalid input." << std::endl;
-				std::istringstream(input) >> hitTime;
+				hitTime = std::stoi(input);
 
 				caches.emplace_back(new Cache(blockSize, setSize, totalSize, (Policy)policy, hitTime, memoryHitTime));
+
+				if (i > 0)
+					caches[i - 1]->setLowerMem(caches[i]);
 			}
-
-			for (unsigned int i = 0; i < caches.size() - 1; ++i)
-				caches[i]->setLowerMem(caches[i + 1]);
-
 			std::cout << std::endl;
 		}
 		break;
@@ -93,28 +90,25 @@ int main()
 					if (myfile.is_open()) {
 						unsigned char instruction;
 						unsigned int address, cycles;
-
+						std::optional<uint32_t> result = 1;
 						totalCycles = 0;
+
 						for (auto& n : caches) {
 							if (input != last_file) // New file requires invalidating all blocks
 								n->invalidateCache();
 							n->resetCacheStats();
 						}
 								
-						while (myfile >> instruction >> std::hex >> address >> cycles) {
-							switch (instruction) {
-							case 'l':
-								totalCycles += caches[0]->readAddress(address) + cycles;
-								break;
-							case 's':
-								totalCycles += caches[0]->writeAddress(address) + cycles;
-								break;
-							default:
-								std::cout << "Error reading trace file line." << std::endl;
-								break;
-							}
+						while (myfile >> instruction >> std::hex >> address >> cycles && result) {
+							/* Testing error handling with std::optional. Requires C++17 */
+							if (result = caches[0]->accessAddress(address, instruction))
+								totalCycles += result.value() + cycles;
+							else
+								std::cout << "An error occurred while reading from file. Aborting simulation." << std::endl;
 						}
-						std::cout << "Simulation complete." << std::endl << std::endl;
+
+						if(result)
+							std::cout << "Simulation complete." << std::endl << std::endl;
 					}
 					else
 						std::cout << "File could not be opened." << std::endl << std::endl;

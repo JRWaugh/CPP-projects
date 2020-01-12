@@ -1,9 +1,9 @@
 #include "MainMemory.h"
 
-uintc32_t MainMemory::readAddress(uintc32_t address) {
+std::optional<uintc32_t> MainMemory::accessAddress(uintc32_t address, const unsigned char instruction) {
 	return mAccessTime;
 }
 
-uintc32_t MainMemory::writeAddress(uintc32_t address) {
+const double MainMemory::getAMAT() const {
 	return mAccessTime;
 }

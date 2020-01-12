@@ -36,29 +36,10 @@ private:
 
 public:
 	Cache(uintc32_t blockSize, uintc32_t setSize, uintc32_t totalSize, Policy policy, uintc32_t accessTime, uintc32_t accessTimeLower);
-
-	/* The read and write member functions are largely identical but have been kept separate anyway. */
-	uintc32_t readAddress(uintc32_t address);
-	uintc32_t writeAddress(uintc32_t address);
-
-	void setLowerMem(const shared_ptr<MainMemory> lowerMem) {
-		mLowerMem = lowerMem;
-	}
-
-	void invalidateCache() {
-		/* Unsets the valid bits in each block in each set of the cache. Should be called when a new file is read. */
-		for (auto& set : mSets)
-			for (auto& block : set)
-				block.first &= ~mValidBit;
-				
-	}
-	void resetCacheStats() {
-		/* Used for clearing out cache statistics without changing any of the parameters. */
-		mDirtyEvict = mStoreHit = mStoreMiss = mLoadHit = mLoadMiss = 0;
-	}
-
-	const double getAMAT() const {
-		return (double)mAccessTime + ( ((double)mLoadMiss + mStoreMiss) / ((double)mLoadMiss + mLoadHit + mStoreMiss + mStoreHit) ) * mLowerMem->getAMAT();
-	}
+	std::optional<uintc32_t> accessAddress(uintc32_t address, const unsigned char instruction);
+	void setLowerMem(const shared_ptr<MainMemory> lowerMem);
+	void invalidateCache();
+	void resetCacheStats();
+	const double getAMAT() const;
 };
 #endif
