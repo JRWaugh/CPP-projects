@@ -68,7 +68,7 @@ int main()
 					std::cout << "Invalid input." << std::endl;
 				hitTime = std::stoi(input);
 
-				if (totalSize < 31) {
+				if (totalSize < 32) {
 					caches.emplace_back(new Cache(blockSize, setSize, totalSize, (Policy)policy, hitTime, memoryHitTime));
 					if (i > 0)
 						caches[i - 1]->setLowerMem(caches[i]);
