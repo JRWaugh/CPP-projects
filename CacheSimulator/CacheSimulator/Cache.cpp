@@ -9,7 +9,11 @@ Cache::Cache(uint32c_t blockSize = 0, uint32c_t setSize = 0, uint32c_t totalSize
     mSets.resize(mSetCount);
 };
 
-uint32c_t Cache::accessAddress(uint32c_t address, const unsigned char instruction) {
+std::optional<uint32c_t> Cache::accessAddress(uint32c_t address, const unsigned char instruction) {
+    /* This function has basic error handling by returning an optional value. 
+     * If the instruction is not 'l' or 's' it will return a nullopt (non-value). 
+     * This is because any unsigned integer is technically a valid result, so returning 0 or -1 does not signal an error. 
+     */
     uint32c_t blockNumber = address / mBlockSize;
     uint32c_t index = blockNumber % mSetCount;
     uint32c_t tag = blockNumber / mSetCount;
@@ -34,7 +38,7 @@ uint32c_t Cache::accessAddress(uint32c_t address, const unsigned char instructio
                  * the address this way ensures everything behaves "properly".
                  */
                 auto reconstructedAddress = ((mSets[index].back().second / mBlockSize) * mSetCount * mBlockSize | index * mBlockSize | mSets[index].back().second & mBlockSize - 1);
-                cycles += mLowerMem->accessAddress(reconstructedAddress, store);
+                cycles += mLowerMem->accessAddress(reconstructedAddress, store).value();
             }
 
             if (instruction == load) {
@@ -46,7 +50,7 @@ uint32c_t Cache::accessAddress(uint32c_t address, const unsigned char instructio
                 mSets[index].back() = make_pair(mValidBit | mDirtyBit, tag * mBlockSize | address & mBlockSize - 1);
             }
             else
-                return -1;
+                return nullopt;
 
         }
         else {
@@ -59,11 +63,11 @@ uint32c_t Cache::accessAddress(uint32c_t address, const unsigned char instructio
                 mSets[index].push_back(make_pair(mValidBit | mDirtyBit, tag * mBlockSize | address & mBlockSize - 1));
             }
             else
-                return -1;
+                return nullopt;
         }
 
 
-        cycles += mLowerMem->accessAddress(address, load);
+        cycles += mLowerMem->accessAddress(address, load).value();
     }
     else {
         if (instruction == load)
@@ -73,7 +77,7 @@ uint32c_t Cache::accessAddress(uint32c_t address, const unsigned char instructio
             *tagIter = make_pair(mValidBit | mDirtyBit, tag * mBlockSize | address & mBlockSize - 1);
         }
         else
-            return -1;
+            return nullopt;
 
         if (mPolicy == Policy::LRU) {
             /* Moves accessed block to the back of the set (MRU) while maintaining the order of the other blocks. */

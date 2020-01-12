@@ -5,6 +5,7 @@
 #include <sstream>
 #include <Vector>
 #include <string>
+#include <optional>
 #include "Cache.h"
 
 enum class Choice { INIT = 1, READ, REPORT, EXIT };
@@ -90,6 +91,7 @@ int main()
             else {
                 unsigned char instruction;
                 unsigned int address, cycles;
+                std::optional<unsigned int> result = 0;
                 totalCycles = 0;
 
                 std::cout << "Enter filename of trace file: ";
@@ -103,10 +105,14 @@ int main()
                         n->resetCacheStats();
                     }
 
-                    while (myfile >> instruction >> std::hex >> address >> cycles)
-                        totalCycles += caches[0]->accessAddress(address, instruction) + cycles;
-                    std::cout << "Simulation complete." << std::endl << std::endl;
+                    while (myfile >> instruction >> std::hex >> address >> cycles && (result = caches[0]->accessAddress(address, instruction)))
+                        totalCycles += result.value() + cycles;
 
+                    if (result.has_value())
+                        std::cout << "Simulation complete." << std::endl << std::endl;
+                    else
+                        std::cout << "Simulation terminated because an error occurred while reading from trace file." << std::endl << std::endl;
+                    
                     myfile.close();
                     last_file = input;
                 }

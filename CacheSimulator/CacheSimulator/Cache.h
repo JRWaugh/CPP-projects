@@ -36,7 +36,7 @@ private:
 
 public:
     Cache(uint32c_t blockSize, uint32c_t setSize, uint32c_t totalSize, Policy policy, uint32c_t accessTime, uint32c_t accessTimeLower);
-    uint32c_t accessAddress(uint32c_t address, const unsigned char instruction);
+    std::optional<uint32c_t> accessAddress(uint32c_t address, const unsigned char instruction);
     void setLowerMem(const shared_ptr<MainMemory> lowerMem) {
         mLowerMem = lowerMem;
     }
