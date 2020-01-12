@@ -1,7 +1,7 @@
-#ifndef MMEMORY_H
-#define MMEMORY_H
-#include <optional>
-typedef const unsigned int uintc32_t;
+#pragma once
+
+using uintc32_t = const unsigned int;
+constexpr char load = 'l', store = 's';
 
 class MainMemory {
 protected:
@@ -9,7 +9,10 @@ protected:
 
 public:
 	MainMemory(uintc32_t accessTime = 400) : mAccessTime{ accessTime } {};
-	virtual std::optional<uintc32_t> accessAddress(uintc32_t address, const unsigned char instruction);
-	virtual const double getAMAT() const;
+	virtual uintc32_t accessAddress(uintc32_t address, const unsigned char instruction) {
+		return mAccessTime;
+	}
+	virtual const double getAMAT() const {
+		return mAccessTime;
+	}
 };
-#endif

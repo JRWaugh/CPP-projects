@@ -154,7 +154,6 @@
   <ItemGroup>
     <ClCompile Include="Cache.cpp" />
     <ClCompile Include="CacheSimulator.cpp" />
-    <ClCompile Include="MainMemory.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Cache.h" />

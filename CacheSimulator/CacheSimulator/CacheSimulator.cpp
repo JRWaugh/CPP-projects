@@ -1,20 +1,19 @@
+#pragma once
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <Vector>
 #include <string>
 #include "Cache.h"
-#include "MainMemory.h"
-#define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
-#include <crtdbg.h>
 
 enum class Choice { INIT = 1, READ, REPORT, EXIT };
 
 int main()
 {
-	//	This program simulates a write-back/write-allocate cache.
-	//	This sim assumes the bus between the cache and main memory is sufficiently wide to fill any block in one access.
+	/* This program simulates a write-back/write-allocate cache.
+	 * The simulation assumes the bus between the cache and main memory is sufficiently wide to fill any block in one access. 
+	 */
 	Choice choice = Choice::INIT;
 	unsigned int totalCycles = 0;
 	std::string input, last_file;
@@ -33,7 +32,7 @@ int main()
 		switch (choice) {
 		case Choice::INIT:
 		{
-			unsigned int memoryHitTime, cacheCount, blockSize, setSize, totalSize, policy, hitTime;
+			unsigned int memoryHitTime, cacheCount, blockSize, setSize, totalSize, policy, hitTime = 0;
 			caches.clear();
 			
 			while(std::cout << "Enter memory access time: " && getline(std::cin, input) && input.find_first_of("0123456789"))
@@ -82,40 +81,30 @@ int main()
 			if (caches.empty())
 				std::cout << "Cannot read trace file until the cache has been initialised." << std::endl << std::endl;
 			else {				
-				do {
-					std::cout << "Enter filename of trace file: ";
-					getline(std::cin, input);
-					myfile.open(input);
+				unsigned char instruction;
+				unsigned int address, cycles;
+				totalCycles = 0;
 
-					if (myfile.is_open()) {
-						unsigned char instruction;
-						unsigned int address, cycles;
-						std::optional<uint32_t> result = 1;
-						totalCycles = 0;
+				std::cout << "Enter filename of trace file: ";
+				getline(std::cin, input);
+				myfile.open(input);
 
-						for (auto& n : caches) {
-							if (input != last_file) // New file requires invalidating all blocks
-								n->invalidateCache();
-							n->resetCacheStats();
-						}
-								
-						while (myfile >> instruction >> std::hex >> address >> cycles && result) {
-							/* Testing error handling with std::optional. Requires C++17 */
-							if (result = caches[0]->accessAddress(address, instruction))
-								totalCycles += result.value() + cycles;
-							else
-								std::cout << "An error occurred while reading from file. Aborting simulation." << std::endl;
-						}
-
-						if(result)
-							std::cout << "Simulation complete." << std::endl << std::endl;
+				if (myfile.is_open()) {
+					for (auto& n : caches) {
+						if (input != last_file) // New file requires invalidating all blocks
+							n->invalidateCache();
+						n->resetCacheStats();
 					}
-					else
-						std::cout << "File could not be opened." << std::endl << std::endl;
-				} while (!myfile.is_open());
+					
+					while (myfile >> instruction >> std::hex >> address >> cycles)
+						totalCycles += caches[0]->accessAddress(address, instruction) + cycles;
+					std::cout << "Simulation complete." << std::endl << std::endl;
 
-				myfile.close();
-				last_file = input;
+					myfile.close();
+					last_file = input;
+				}
+				else
+					std::cout << "Unable to open file." << std::endl << std::endl;
 			}
 			break;
 
@@ -125,7 +114,7 @@ int main()
 			else {
 				std::cout << "Report for each memory level:" << std::endl;
 				for (unsigned int i = 0; i < caches.size(); ++i)
-					std::cout << "Cache level " << i + 1 << ":\n" << *caches[i] << std::endl;
+					std::cout << "Cache level " << i + 1 << ":\n" << *caches[i] << std::endl << std::endl;
 				std::cout << left << setw(20) << "Total cycles: " << right << setw(10) << totalCycles << std::endl << std::endl;
 			}
 			break;
@@ -140,5 +129,4 @@ int main()
 		}
 	}
 	return 0;
-	_CrtDumpMemoryLeaks();
 }

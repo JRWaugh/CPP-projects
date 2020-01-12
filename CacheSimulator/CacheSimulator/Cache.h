@@ -1,11 +1,11 @@
-#ifndef CACHE_H
-#define CACHE_H
-#include "MainMemory.h"
+#pragma once
+
 #include <memory>
 #include <iostream>
 #include <iomanip>
 #include <vector>
 #include <random>
+#include "MainMemory.h"
 
 using namespace std;
 
@@ -36,10 +36,14 @@ private:
 
 public:
 	Cache(uintc32_t blockSize, uintc32_t setSize, uintc32_t totalSize, Policy policy, uintc32_t accessTime, uintc32_t accessTimeLower);
-	std::optional<uintc32_t> accessAddress(uintc32_t address, const unsigned char instruction);
-	void setLowerMem(const shared_ptr<MainMemory> lowerMem);
+	uintc32_t accessAddress(uintc32_t address, const unsigned char instruction);
+	void setLowerMem(const shared_ptr<MainMemory> lowerMem) {
+		mLowerMem = lowerMem;
+	}
 	void invalidateCache();
-	void resetCacheStats();
+	void resetCacheStats() {
+		/* Used for clearing out cache statistics without changing any of the parameters. */
+		mDirtyEvict = mStoreHit = mStoreMiss = mLoadHit = mLoadMiss = 0;
+	}
 	const double getAMAT() const;
 };
-#endif

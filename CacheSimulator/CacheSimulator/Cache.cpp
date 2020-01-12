@@ -9,15 +9,11 @@ Cache::Cache(uintc32_t blockSize = 0, uintc32_t setSize = 0, uintc32_t totalSize
 	mSets.resize(mSetCount);
 };
 
-std::optional<uintc32_t> Cache::accessAddress(uintc32_t address, const unsigned char instruction) {
-	/* This function will return an option containing either a value (cycles) or a nullopt.
-	 * This was an exercise in rudimentary error handling and isn't all that useful.
-	 */
+uintc32_t Cache::accessAddress(uintc32_t address, const unsigned char instruction) {
 	uintc32_t blockNumber = address / mBlockSize;
 	uintc32_t index = blockNumber % mSetCount;
 	uintc32_t tag = blockNumber / mSetCount;
 	unsigned int cycles = mAccessTime;
-	std::optional<unsigned int> result;
 
 	/* This algorithm searches through the index for the desired tag. */
 	auto tagIter = find_if(mSets[index].begin(), mSets[index].end(), [&](auto block) {
@@ -25,13 +21,6 @@ std::optional<uintc32_t> Cache::accessAddress(uintc32_t address, const unsigned 
 		});
 
 	if (tagIter == mSets[index].end()) { // The tag was not found...
-		if (instruction == 'l')
-			++mLoadMiss;
-		else if (instruction == 's')
-			++mStoreMiss;
-		else
-			return nullopt;
-
 		if (mSets[index].size() == mSetSize) { // ... and the set is full
 			if (mPolicy == Policy::Random)
 				shuffle(mSets[index].begin(), mSets[index].end(), gen);
@@ -44,26 +33,47 @@ std::optional<uintc32_t> Cache::accessAddress(uintc32_t address, const unsigned 
 				/* The sim can have differently sized blocks (eg. L2 smaller than L1) so reconstructing
 				 * the address this way ensures everything behaves "properly". 
 				 */
-				auto reconstructedAddress = ((mSets[index].back().second / mBlockSize) * mSetCount * mBlockSize | (index * mBlockSize) | (mSets[index].back().second & (mBlockSize - 1)));
-				cycles += mLowerMem->accessAddress(reconstructedAddress, 's').value();
+				auto reconstructedAddress = ((mSets[index].back().second / mBlockSize) * mSetCount * mBlockSize | index * mBlockSize | mSets[index].back().second & mBlockSize - 1);
+				cycles += mLowerMem->accessAddress(reconstructedAddress, store);
 			}
-			/* The LSB of 'l' is 0 and the LSB of 's' is 1, so the bitwise & will set the dirty bit if the instruction is a store. */
-			mSets[index].back() = make_pair(mValidBit | (instruction & mDirtyBit), (tag * mBlockSize) | (address & (mBlockSize - 1)));
+			
+			if (instruction == load) {
+				++mLoadMiss;
+				mSets[index].back() = make_pair(mValidBit, tag * mBlockSize | address & mBlockSize - 1);
+			}
+			else if (instruction == store) {
+				++mStoreMiss;
+				mSets[index].back() = make_pair(mValidBit | mDirtyBit, tag * mBlockSize | address & mBlockSize - 1);
+			}
+			else
+				return -1;
+			
 		}
-		else 
-			mSets[index].push_back(make_pair(mValidBit | (instruction & mDirtyBit), (tag * mBlockSize) | (address & (mBlockSize - 1))));
+		else {
+			if (instruction == load) {
+				++mLoadMiss;
+				mSets[index].push_back(make_pair(mValidBit, tag * mBlockSize | address & mBlockSize - 1));
+			}
+			else if (instruction == store) {
+				++mStoreMiss;
+				mSets[index].push_back(make_pair(mValidBit | mDirtyBit, tag * mBlockSize | address & mBlockSize - 1));
+			}
+			else
+				return -1;
+		}
+			
 
-		cycles += mLowerMem->accessAddress(address, 'l').value();			
+		cycles += mLowerMem->accessAddress(address, load);			
 	}
 	else {
-		if (instruction == 'l')
+		if (instruction == load)
 			++mLoadHit;
-		else if (instruction == 's') {
+		else if (instruction == store) {
 			++mStoreHit;
-			*tagIter = make_pair(mValidBit | mDirtyBit, (tag * mBlockSize) | (address & (mBlockSize - 1)));
+			*tagIter = make_pair(mValidBit | mDirtyBit, tag * mBlockSize | address & mBlockSize - 1);
 		}
 		else
-			return nullopt;
+			return -1;
 
 		if (mPolicy == Policy::LRU && mSets[index].back() != *tagIter)
 			/* Moves accessed block to the back of the set (MRU) while maintaining the order of the other blocks. */
@@ -72,20 +82,11 @@ std::optional<uintc32_t> Cache::accessAddress(uintc32_t address, const unsigned 
 	return cycles;
 }
 
-void Cache::setLowerMem(const shared_ptr<MainMemory> lowerMem) {
-	mLowerMem = lowerMem;
-}
-
 void Cache::invalidateCache() {
 	/* Unsets the valid bits in each block in each set of the cache. Should be called when a new file is read. */
 	for (auto& set : mSets)
 		for (auto& block : set)
 			block.first &= ~mValidBit;
-}
-
-void Cache::resetCacheStats() {
-	/* Used for clearing out cache statistics without changing any of the parameters. */
-	mDirtyEvict = mStoreHit = mStoreMiss = mLoadHit = mLoadMiss = 0;
 }
 
 const double Cache::getAMAT() const {
