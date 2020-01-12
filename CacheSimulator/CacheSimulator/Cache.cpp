@@ -1,6 +1,6 @@
 #include "Cache.h"
 
-Cache::Cache(uintc32_t blockSize = 0, uintc32_t setSize = 0, uintc32_t totalSize = 0, Policy policy = Policy::LRU, uintc32_t accessTime = 0, uintc32_t accessTimeLower = 0) :
+Cache::Cache(uint32c_t blockSize = 0, uint32c_t setSize = 0, uint32c_t totalSize = 0, Policy policy = Policy::LRU, uint32c_t accessTime = 0, uint32c_t accessTimeLower = 0) :
     MainMemory{ accessTime },
     mBlockSize{ 1U << blockSize }, mSetSize{ 1U << setSize }, mTotalSize{ 1U << totalSize }, mSetCount{ mTotalSize / (mBlockSize * mSetSize) }, mPolicy{ policy },
     mStoreHit{ 0 }, mStoreMiss{ 0 }, mLoadHit{ 0 }, mLoadMiss{ 0 }, mDirtyEvict{ 0 },
@@ -9,10 +9,10 @@ Cache::Cache(uintc32_t blockSize = 0, uintc32_t setSize = 0, uintc32_t totalSize
     mSets.resize(mSetCount);
 };
 
-uintc32_t Cache::accessAddress(uintc32_t address, const unsigned char instruction) {
-    uintc32_t blockNumber = address / mBlockSize;
-    uintc32_t index = blockNumber % mSetCount;
-    uintc32_t tag = blockNumber / mSetCount;
+uint32c_t Cache::accessAddress(uint32c_t address, const unsigned char instruction) {
+    uint32c_t blockNumber = address / mBlockSize;
+    uint32c_t index = blockNumber % mSetCount;
+    uint32c_t tag = blockNumber / mSetCount;
     unsigned int cycles = mAccessTime;
 
     /* This algorithm searches through the index for the desired tag. */

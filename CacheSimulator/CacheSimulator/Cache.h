@@ -22,7 +22,7 @@ private:
     vector<vector<pair<unsigned char, unsigned int>>> mSets;
 
     /* Cache parameters. */
-    uintc32_t mBlockSize, mSetSize, mTotalSize, mSetCount;
+    uint32c_t mBlockSize, mSetSize, mTotalSize, mSetCount;
     Policy mPolicy;
 
     /* Cache statistics. */
@@ -35,8 +35,8 @@ private:
     mt19937 gen;
 
 public:
-    Cache(uintc32_t blockSize, uintc32_t setSize, uintc32_t totalSize, Policy policy, uintc32_t accessTime, uintc32_t accessTimeLower);
-    uintc32_t accessAddress(uintc32_t address, const unsigned char instruction);
+    Cache(uint32c_t blockSize, uint32c_t setSize, uint32c_t totalSize, Policy policy, uint32c_t accessTime, uint32c_t accessTimeLower);
+    uint32c_t accessAddress(uint32c_t address, const unsigned char instruction);
     void setLowerMem(const shared_ptr<MainMemory> lowerMem) {
         mLowerMem = lowerMem;
     }
