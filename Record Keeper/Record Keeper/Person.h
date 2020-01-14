@@ -53,8 +53,6 @@ public:
         return written;
     }
 
-   
-
     static std::optional<Person> new_record() {
         Person person;
         std::cout << "=== Creating new record ===\nEnter quit at any time to quit." << std::endl;

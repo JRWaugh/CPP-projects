@@ -12,13 +12,15 @@
 
 using namespace std;
 
+enum class Selection { INIT = 1, SAVE, LOAD, NEW, DELETE, SEARCH, REPORT, QUIT };
+
 int main()
 {
     std::vector<vector<Person>> people; //Vector of vector of persons, where each vector of Person is a group of relatives. So overall it is a vector of relatives.
     std::string input;
     std::fstream fs;
     unsigned int relative_id = 0;
-    unsigned char selection = 0;
+    Selection selection = Selection::INIT;
     bool read_from_file = false;
 
 
@@ -29,7 +31,7 @@ int main()
         fs.close();
     }
 
-    while (selection != 8) {
+    while (selection != Selection::QUIT) {
         do {
             std::cout << "=== Record Keeper ===\n1. Initialise\n2. Save to disk\n3. Read from disk" << std::endl <<
                 "4. Add new person\n5. Remove a person\n6. Find people in a city\n7. Print all contract info\n8. Exit program" << std::endl <<
@@ -37,8 +39,9 @@ int main()
             getline(std::cin, input);
         } while (input.find_first_of("12345678") && std::cout << "Invalid input." << std::endl);
 
-        switch (selection = input[0] - '0') {
-        case 1:
+        selection = static_cast<Selection>(input[0] - '0');
+        switch (selection) {
+        case Selection::INIT:
             // Not sure if init clears memory or clears the file but I just made it do both.
             do {
                 std::cout << "This will clear all records in memory and in file.\nAre you sure you wish to continue (y/n)? ";
@@ -60,11 +63,11 @@ int main()
                 break;
             }
             break;
-        case 2:
+        case Selection::SAVE:
             fs.open("record.txt", std::fstream::in | std::fstream::out | std::fstream::app);
             if (fs.is_open()) {
                 for (auto& relatives : people) {
-                    for(auto& person : relatives) 
+                    for (auto& person : relatives)
                         if (!person.is_written()) {
                             person.set_written(true);
                             fs << person << std::endl;
@@ -75,7 +78,7 @@ int main()
             else
                 std::cout << "Could not open file." << std::endl;
             break;
-        case 3:
+        case Selection::LOAD:
             fs.open("record.txt", std::fstream::in);
             if (fs.is_open()) {
                 // Get rid of all the people who have already been written to file. Too lazy to do it in a smarter way.
@@ -110,7 +113,7 @@ int main()
                 read_from_file = true;
             }
             break;
-        case 4:
+        case Selection::NEW:
             if (!read_from_file && std::cout << "Please load phonebook from file before adding new persons." << std::endl)
                 break;
 
@@ -145,7 +148,7 @@ int main()
                         person.value().set_relative((*relatives)[0].get_relative());
                         relatives->push_back(person.value());
                     }
-                } 
+                }
                 else {
                     people.push_back(vector<Person>());
                     person.value().set_relative(relative_id++);
@@ -153,13 +156,13 @@ int main()
                 }
             }
             break;
-        case 5:
+        case Selection::DELETE:
             std::cout << "Enter name of person to remove from record: ";
             getline(std::cin, input);
 
             /* Below are two sets Erase + Remove_if algorithms. Remove_if moves all elements where the (lambda) function
              * returns true and returns a pointer to the first removed item in the vector. Erase takes this returned pointer and erases
-             * all elements between it and the vector .end() pointer by unallocating memory. The inner Erase + Remove_if 
+             * all elements between it and the vector .end() pointer by unallocating memory. The inner Erase + Remove_if
              * will delete the person searched for. The outer Erase + Remove_if will delete a vector if it is empty
              * after a person has been removed. */
             people.erase(std::remove_if(people.begin(), people.end(), [&input](auto& relatives) {
@@ -169,9 +172,9 @@ int main()
                     }), relatives.end());
                 return relatives.empty();
                 }), people.end());
-            
+
             break;
-        case 6:
+        case Selection::SEARCH:
             std::cout << "Enter city name to search for: ";
             getline(std::cin, input);
             for (auto& relatives : people) {
@@ -181,7 +184,7 @@ int main()
                 }
             }
             break;
-        case 7:
+        case Selection::REPORT:
             std::cout << "Printing all records in phonebook. Relatives are separated by newline." << std::endl;
             for (auto& relatives : people) {
                 for (auto& person : relatives)
@@ -189,7 +192,7 @@ int main()
                 std::cout << std::endl;
             }
             break;
-        case 8:
+        case Selection::QUIT:
             std::cout << "Exiting program." << std::endl;
             break;
         default:
