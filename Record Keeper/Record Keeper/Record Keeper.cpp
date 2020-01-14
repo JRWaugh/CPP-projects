@@ -11,12 +11,12 @@
 #include "Person.h"
 
 using namespace std;
-
+using Relatives = vector<Person>;
 enum class Selection { INIT = 1, SAVE, LOAD, NEW, DELETE, SEARCH, REPORT, QUIT };
 
 int main()
 {
-    std::vector<vector<Person>> people; //Vector of vector of persons, where each vector of Person is a group of relatives. So overall it is a vector of relatives.
+    std::vector<Relatives> people; //Vector of vector of persons, where each vector of Person is a group of relatives. So overall it is a vector of relatives.
     std::string input;
     std::fstream fs;
     unsigned int relative_id = 0;
@@ -40,6 +40,7 @@ int main()
         } while (input.find_first_of("12345678") && std::cout << "Invalid input." << std::endl);
 
         selection = static_cast<Selection>(input[0] - '0');
+
         switch (selection) {
         case Selection::INIT:
             // Not sure if init clears memory or clears the file but I just made it do both.
@@ -63,7 +64,9 @@ int main()
                 break;
             }
             break;
+
         case Selection::SAVE:
+            //Saves everybody to file who hasn't already been saved.
             fs.open("record.txt", std::fstream::in | std::fstream::out | std::fstream::app);
             if (fs.is_open()) {
                 for (auto& relatives : people) {
@@ -78,6 +81,7 @@ int main()
             else
                 std::cout << "Could not open file." << std::endl;
             break;
+
         case Selection::LOAD:
             fs.open("record.txt", std::fstream::in);
             if (fs.is_open()) {
@@ -93,7 +97,7 @@ int main()
                 while (fs >> person) {
                     person.set_written(true); // Must be written because it has come from the file.
 
-                    // It should be required that the file is read from if it's not empty.
+                    // It is required that the file is read from if it's not empty.
                     // If it's not empty, the below if statement will find the highest relative ID so far in the file.
                     if (person.get_relative() >= relative_id)
                         relative_id = person.get_relative() + 1;
@@ -105,7 +109,7 @@ int main()
                     if (iter != people.end())
                         iter->push_back(person);
                     else {
-                        people.push_back(vector<Person>());
+                        people.push_back(Relatives());
                         people.back().push_back(person);
                     }
                 }
@@ -113,6 +117,7 @@ int main()
                 read_from_file = true;
             }
             break;
+
         case Selection::NEW:
             if (!read_from_file && std::cout << "Please load phonebook from file before adding new persons." << std::endl)
                 break;
@@ -138,8 +143,8 @@ int main()
 
                     if (input[0] != 'y') {
                         std::cout << "No relatives were found." << std::endl;
-                        //This pushes back a new vector of relatives and then pushes back the newly created person into this vector.
-                        people.push_back(vector<Person>());
+                        //This pushes back a new relatives vector and then pushes back the newly created person into this vector.
+                        people.push_back(Relatives());
                         person.value().set_relative(relative_id++);
                         people.back().push_back(person.value());
                     }
@@ -150,12 +155,13 @@ int main()
                     }
                 }
                 else {
-                    people.push_back(vector<Person>());
+                    people.push_back(Relatives());
                     person.value().set_relative(relative_id++);
                     people.back().push_back(person.value());
                 }
             }
             break;
+
         case Selection::DELETE:
             std::cout << "Enter name of person to remove from record: ";
             getline(std::cin, input);
@@ -172,8 +178,8 @@ int main()
                     }), relatives.end());
                 return relatives.empty();
                 }), people.end());
-
             break;
+
         case Selection::SEARCH:
             std::cout << "Enter city name to search for: ";
             getline(std::cin, input);
@@ -184,6 +190,7 @@ int main()
                 }
             }
             break;
+
         case Selection::REPORT:
             std::cout << "Printing all records in phonebook. Relatives are separated by newline." << std::endl;
             for (auto& relatives : people) {
