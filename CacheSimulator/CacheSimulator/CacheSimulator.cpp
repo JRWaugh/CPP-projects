@@ -27,10 +27,9 @@ int main()
             getline(std::cin, input) &&
             input.find_first_of("1234"))
             std::cout << "Invalid input." << std::endl;
-        choice = static_cast<Choice>(input[0] - '0');
         std::cout << std::endl;
 
-        switch (choice) {
+        switch (choice = static_cast<Choice>(input[0] - '0')) {
         case Choice::INIT:
         {
             unsigned int memoryHitTime, cacheCount, blockSize, setSize, totalSize, policy, hitTime = 0;
@@ -70,7 +69,7 @@ int main()
                 hitTime = std::stoi(input);
 
                 if (totalSize < 32) {
-                    caches.emplace_back(new Cache(blockSize, setSize, totalSize, (Policy)policy, hitTime, memoryHitTime));
+                    caches.emplace_back(new Cache(blockSize, setSize, totalSize, static_cast<Policy>(policy), hitTime, memoryHitTime));
                     if (i > 0)
                         caches[i - 1]->setLowerMem(caches[i]);
                 }
@@ -78,8 +77,6 @@ int main()
                     std::cout << "Invalid cache settings! Total size can not exceed 2^31 bytes." << std::endl;
                     --i;
                 }
-
-
             }
             std::cout << std::endl;
         }

@@ -39,11 +39,8 @@ int main()
             getline(std::cin, input);
         } while (input.find_first_of("12345678") && std::cout << "Invalid input." << std::endl);
 
-        selection = static_cast<Selection>(input[0] - '0');
-
-        switch (selection) {
+        switch (static_cast<Selection>(input[0] - '0')) {
         case Selection::INIT:
-            // Not sure if init clears memory or clears the file but I just made it do both.
             do {
                 std::cout << "This will clear all records in memory and in file.\nAre you sure you wish to continue (y/n)? ";
                 getline(std::cin, input);
@@ -56,9 +53,11 @@ int main()
                 fs.open("record.txt", std::ofstream::out | std::ofstream::trunc);
                 fs.close();
                 break;
+
             case 'n':
                 std::cout << "Returning to main menu." << std::endl;
                 break;
+
             default:
                 std::cout << "Invalid input." << std::endl;
                 break;
@@ -66,16 +65,15 @@ int main()
             break;
 
         case Selection::SAVE:
-            //Saves everybody to file who hasn't already been saved.
+            // Saves everybody to file who hasn't already been saved.
             fs.open("record.txt", std::fstream::in | std::fstream::out | std::fstream::app);
             if (fs.is_open()) {
-                for (auto& relatives : people) {
+                for (auto& relatives : people)
                     for (auto& person : relatives)
                         if (!person.is_written()) {
                             person.set_written(true);
                             fs << person << std::endl;
                         }
-                }
                 fs.close();
             }
             else
@@ -85,7 +83,7 @@ int main()
         case Selection::LOAD:
             fs.open("record.txt", std::fstream::in);
             if (fs.is_open()) {
-                // Get rid of all the people who have already been written to file. Too lazy to do it in a smarter way.
+                // Gets rid of all the people who have already been written to file. Too lazy to do it in a smarter way.
                 people.erase(std::remove_if(people.begin(), people.end(), [](auto& relatives) {
                     relatives.erase(std::remove_if(relatives.begin(), relatives.end(), [](auto& person) {
                         return person.is_written();
@@ -95,23 +93,19 @@ int main()
 
                 Person person;
                 while (fs >> person) {
-                    person.set_written(true); // Must be written because it has come from the file.
+                    person.set_written(true);
 
-                    // It is required that the file is read from if it's not empty.
-                    // If it's not empty, the below if statement will find the highest relative ID so far in the file.
                     if (person.get_relative() >= relative_id)
                         relative_id = person.get_relative() + 1;
 
-                    auto iter = find_if(people.begin(), people.end(), [&person](auto& relatives) {
+                    auto relatives = find_if(people.begin(), people.end(), [&person](auto& relatives) {
                         return relatives[0].get_relative() == person.get_relative();
                         });
 
-                    if (iter != people.end())
-                        iter->push_back(person);
-                    else {
-                        people.push_back(Relatives());
-                        people.back().push_back(person);
-                    }
+                    if (relatives != people.end())
+                        relatives->push_back(person);
+                    else
+                        people.emplace_back(Relatives{ person });
                 }
                 fs.close();
                 read_from_file = true;
@@ -124,40 +118,36 @@ int main()
 
             if (auto person = Person::new_record()) {
                 std::string relative_name;
-                bool found_relative = false;
-                std::cout << "If this person has a relative already recorded in the phone book, enter their name now." << std::endl <<
+                std::cout << "If this person has a relative already recorded in the phone book, enter their name now.\n"
                     "If not, just type quit.\nInput: ";
                 getline(std::cin, relative_name);
-                if (relative_name != "quit") {
-                    auto relatives = people.begin();
-                    for (relatives; relatives != people.end() && input[0] != 'y'; ++relatives) {
-                        for (auto& relative : *relatives) {
+                if (relative_name == "quit") {
+                    person.value().set_relative(relative_id++);
+                    people.emplace_back(Relatives{ person.value() });
+                } 
+                else {
+                    auto relatives = find_if(people.begin(), people.end(), [&relative_name, &input](auto& relatives) {
+                        return relatives.end() != find_if(relatives.begin(), relatives.end(), [&relative_name, &input](auto& relative) {
                             if (relative.get_name() == relative_name) {
                                 do {
                                     std::cout << relative << std::endl << "Is this the person you meant (y/n)? ";
                                     getline(std::cin, input);
                                 } while (input.find_first_of("yn") && std::cout << "Invalid input." << std::endl);
-                            }
-                        }
-                    }
 
-                    if (input[0] != 'y') {
-                        std::cout << "No relatives were found." << std::endl;
-                        //This pushes back a new relatives vector and then pushes back the newly created person into this vector.
-                        people.push_back(Relatives());
-                        person.value().set_relative(relative_id++);
-                        people.back().push_back(person.value());
-                    }
-                    else {
-                        --relatives; //Needs to be decremented because of how the for loop works.
+                                return input[0] == 'y';
+                            }
+                            });
+                        });
+
+                    if (relatives != people.end()) {
                         person.value().set_relative((*relatives)[0].get_relative());
                         relatives->push_back(person.value());
                     }
-                }
-                else {
-                    people.push_back(Relatives());
-                    person.value().set_relative(relative_id++);
-                    people.back().push_back(person.value());
+                    else {
+                        std::cout << "No relatives were found." << std::endl;
+                        person.value().set_relative(relative_id++);
+                        people.emplace_back(Relatives{ person.value() });
+                    }                         
                 }
             }
             break;
@@ -199,9 +189,11 @@ int main()
                 std::cout << std::endl;
             }
             break;
+
         case Selection::QUIT:
             std::cout << "Exiting program." << std::endl;
             break;
+
         default:
             std::cout << "Invalid input." << std::endl;
             break;
