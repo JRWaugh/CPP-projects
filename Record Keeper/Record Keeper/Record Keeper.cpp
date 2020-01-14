@@ -7,6 +7,8 @@
 
 using namespace std;
 using Relatives = vector<Person>;
+
+constexpr char filename[] = "record.txt";
 enum class Selection { INIT = 1, SAVE, LOAD, NEW, DELETE, SEARCH, REPORT, QUIT };
 
 int main()
@@ -18,7 +20,7 @@ int main()
     Selection selection = Selection::INIT;
     bool read_from_file = false;
 
-    fs.open("record.txt", std::fstream::in | std::fstream::out | std::fstream::app);
+    fs.open(filename, std::fstream::in | std::fstream::out | std::fstream::app);
     if (fs.is_open()) {
         if (fs.peek() == std::ifstream::traits_type::eof())
             read_from_file = true; //Because the file is empty.
@@ -44,7 +46,7 @@ int main()
             case 'y':
                 std::cout << "Clearing all records..." << std::endl;
                 phonebook.clear();
-                fs.open("record.txt", std::ofstream::out | std::ofstream::trunc);
+                fs.open(filename, std::ofstream::out | std::ofstream::trunc);
                 fs.close();
                 break;
 
@@ -60,7 +62,7 @@ int main()
 
         case Selection::SAVE:
             // Saves everybody to file who hasn't already been saved.
-            fs.open("record.txt", std::fstream::in | std::fstream::out | std::fstream::app);
+            fs.open(filename, std::fstream::in | std::fstream::out | std::fstream::app);
             if (fs.is_open()) {
                 for (auto& relatives : phonebook)
                     for (auto& person : relatives)
@@ -75,7 +77,7 @@ int main()
             break;
 
         case Selection::LOAD:
-            fs.open("record.txt", std::fstream::in);
+            fs.open(filename, std::fstream::in);
             if (fs.is_open()) {
                 // Gets rid of all the people who have already been written to file. Too lazy to do it in a smarter way.
                 phonebook.erase(std::remove_if(phonebook.begin(), phonebook.end(), [](auto& relatives) {
