@@ -134,8 +134,7 @@ int main()
                             });
                         });
 
-                    if (relatives_iter != phonebook.end()) {
-                        
+                    if (relatives_iter != phonebook.end()) {       
                         person.value().set_relative(relatives_iter->front().get_relative());
                         relatives_iter->push_back(person.value());
                     }
@@ -169,12 +168,10 @@ int main()
         case Selection::SEARCH:
             std::cout << "Enter city name to search for: ";
             getline(std::cin, input);
-            for (auto& relatives : phonebook) {
-                for (auto& person : relatives) {
+            for (auto& relatives : phonebook)
+                for (auto& person : relatives)
                     if (person.get_city() == input)
                         std::cout << person << std::endl;
-                }
-            }
             break;
 
         case Selection::REPORT:
