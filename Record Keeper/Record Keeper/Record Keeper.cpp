@@ -39,7 +39,7 @@ int main()
             getline(std::cin, input);
         } while (input.find_first_of("12345678") && std::cout << "Invalid input." << std::endl);
 
-        switch (static_cast<Selection>(input[0] - '0')) {
+        switch (selection = static_cast<Selection>(input[0] - '0')) {
         case Selection::INIT:
             do {
                 std::cout << "This will clear all records in memory and in file.\nAre you sure you wish to continue (y/n)? ";
@@ -121,6 +121,7 @@ int main()
                 std::cout << "If this person has a relative already recorded in the phone book, enter their name now.\n"
                     "If not, just type quit.\nInput: ";
                 getline(std::cin, relative_name);
+
                 if (relative_name == "quit") {
                     person.value().set_relative(relative_id++);
                     people.emplace_back(Relatives{ person.value() });

@@ -37,7 +37,7 @@ public:
         return city;
     }
 
-    void set_relative(unsigned int relative_) {
+    void set_relative(const unsigned int relative_) {
         relative = relative_;
     }
 
