@@ -37,7 +37,7 @@ public:
 			m_correct_answer = m_answers[answer[0] - '0' - 1];
 
 		// Having fun making some unreadable code using ternary operator and short circuit evaluation.
-		return m_correct_answer == m_answers[answer[0] - '0' - 1] ? (true && std::cout << "Correct!" << std::endl) :  (std::cout << "Incorrect!" << std::endl && false);
+		return m_correct_answer == m_answers[answer[0] - '0' - 1] ? (true && std::cout << "Correct!" << std::endl) : (std::cout << "Incorrect!" << std::endl && false);
 	}
 
 	const bool is_written() const {

@@ -59,8 +59,6 @@ int main()
 				}
 				fs.close();
 			}
-			std::cout << "Read test." << std::endl;
-
 			break;
 
 		case Selection::NEW:

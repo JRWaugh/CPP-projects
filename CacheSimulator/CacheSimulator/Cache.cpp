@@ -66,7 +66,6 @@ std::optional<uint32c_t> Cache::accessAddress(uint32c_t address, const unsigned 
                 return nullopt;
         }
 
-
         cycles += mLowerMem->accessAddress(address, load).value();
     }
     else {
