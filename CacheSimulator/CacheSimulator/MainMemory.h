@@ -2,6 +2,7 @@
 
 #include <optional>
 using uint32c_t = unsigned int const;
+using uint64c_t = unsigned long long const;
 constexpr char load = 'l', store = 's';
 
 class MainMemory {

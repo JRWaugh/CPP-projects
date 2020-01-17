@@ -16,7 +16,7 @@ int main()
      * The simulation assumes the bus between the cache and main memory is sufficiently wide to fill any block in one access.
      */
     Choice choice = Choice::INIT;
-    unsigned int totalCycles = 0;
+    unsigned int totalCycles{0};
     std::string input, last_file;
     std::ifstream myfile;
     std::vector<std::shared_ptr<Cache>> caches;
@@ -32,7 +32,7 @@ int main()
         switch (choice = static_cast<Choice>(input[0] - '0')) {
         case Choice::INIT:
         {
-            unsigned int memoryHitTime, cacheCount, blockSize, setSize, totalSize, policy, hitTime = 0;
+            unsigned int memoryHitTime{0}, cacheCount{0}, blockSize{0}, setSize{0}, totalSize{0}, policy{0}, hitTime{0};
             caches.clear();
 
             while (std::cout << "Enter memory access time: " && getline(std::cin, input) && input.find_first_of("0123456789"))
@@ -68,13 +68,13 @@ int main()
                     std::cout << "Invalid input." << std::endl;
                 hitTime = std::stoi(input);
 
-                if (totalSize < 32) {
+                if (totalSize <= 32) {
                     caches.emplace_back(new Cache(blockSize, setSize, totalSize, static_cast<Policy>(policy), hitTime, memoryHitTime));
                     if (i > 0)
                         caches[i - 1]->setLowerMem(caches[i]);
                 }
                 else {
-                    std::cout << "Invalid cache settings! Total size can not exceed 2^31 bytes." << std::endl;
+                    std::cout << "Invalid cache settings! Total size should not exceed 2^32 bytes." << std::endl;
                     --i;
                 }
             }

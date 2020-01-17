@@ -8,7 +8,6 @@
 #include "MainMemory.h"
 
 using namespace std;
-
 enum class Policy { FIFO = 1, LRU, Random };
 
 class Cache : public MainMemory {
@@ -22,7 +21,7 @@ private:
     vector<vector<pair<unsigned char, unsigned int>>> mSets;
 
     /* Cache parameters. */
-    uint32c_t mBlockSize, mSetSize, mTotalSize, mSetCount;
+    uint64c_t mBlockSize, mSetSize, mTotalSize;
     Policy mPolicy;
 
     /* Cache statistics. */
