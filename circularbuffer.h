@@ -12,9 +12,6 @@ class circularbuffer {
 public:
 	circularbuffer() : buffer{ 0 }, size_{ 0 }, tail{ buffer }, end{ buffer + N } {}
 
-	/* Not sure if this constructor does what I want it to do. */
-	circularbuffer(T const array[]) : buffer{ array }, size_{ sizeof(array) }, tail{ buffer }, end{ buffer + N } {}
-
 	template <typename... Type>
 	circularbuffer(Type... args) : buffer{ static_cast<T>(args)... }, size_{ sizeof...(Type) }, tail{ buffer }, end{ buffer + N } {}
 
